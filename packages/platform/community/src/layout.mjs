@@ -17,6 +17,9 @@ export const DIRECTORY_LAYOUT = Object.freeze([
 ])
 const MARKER = 'beellix-layout.json'
 const ROOT_PRODUCT = '@beellix-ai/dsh-ui'
+// 已交付目录保持其原身份；包改名不是数据迁移。
+const ROOT_PRODUCTS = new Set([ROOT_PRODUCT, '@beellix/dsh-ui'])
+const ENVIRONMENT_NAMES = new Set(['@beellix-ai/local-environment', '@beellix/local-environment'])
 const canonical = path => process.platform === 'win32' ? resolve(path).toLowerCase() : resolve(path)
 const inside = (root, target) => { const part = relative(root, target); return part === '' || (!part.startsWith('..') && !isAbsolute(part)) }
 
@@ -61,7 +64,7 @@ function replaceJson(path,value){
 }
 
 function validateMarker(value){
-  if(!value||value.product!==ROOT_PRODUCT||value.schemaVersion!==1||typeof value.instanceId!=='string'||!/^[0-9a-f-]{36}$/u.test(value.instanceId)||typeof value.createdAt!=='string'||typeof value.installationDirectory!=='string'||!isAbsolute(value.installationDirectory)||value.previousRoots!==undefined&&(!Array.isArray(value.previousRoots)||value.previousRoots.length>32||value.previousRoots.some(root=>typeof root!=='string'||!isAbsolute(root))))throw new LayoutError('配套目录归属或结构版本不匹配，已保留原内容。')
+  if(!value||!ROOT_PRODUCTS.has(value.product)||value.schemaVersion!==1||typeof value.instanceId!=='string'||!/^[0-9a-f-]{36}$/u.test(value.instanceId)||typeof value.createdAt!=='string'||typeof value.installationDirectory!=='string'||!isAbsolute(value.installationDirectory)||value.previousRoots!==undefined&&(!Array.isArray(value.previousRoots)||value.previousRoots.length>32||value.previousRoots.some(root=>typeof root!=='string'||!isAbsolute(root))))throw new LayoutError('配套目录归属或结构版本不匹配，已保留原内容。')
   return value
 }
 
@@ -131,7 +134,7 @@ export class LayoutStore {
 
   #structureRecords() {
     const environment = readJson(join(this.root, 'environment/package.json'))
-    if (environment !== undefined && (environment?.name !== '@beellix-ai/local-environment' || environment.private !== true || !environment.dependencies || typeof environment.dependencies !== 'object' || Array.isArray(environment.dependencies))) throw new LayoutError('插件环境已有其他配置，已保留原内容。')
+    if (environment !== undefined && (!ENVIRONMENT_NAMES.has(environment?.name) || environment.private !== true || !environment.dependencies || typeof environment.dependencies !== 'object' || Array.isArray(environment.dependencies))) throw new LayoutError('插件环境已有其他配置，已保留原内容。')
     const registry = readJson(join(this.root, 'registry.json'))
     if (registry !== undefined && (registry?.schemaVersion !== 1 || !Array.isArray(registry.plugins))) throw new LayoutError('应用登记版本或格式不支持，已保留原内容。')
     return { environment, registry }

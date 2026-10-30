@@ -18,6 +18,13 @@
 - 补齐第三方许可声明，排除内部开发记录、个人路径和运行资料。
 - Windows 独立测试及 npm/pnpm 安装检查；具体范围见[验证说明](https://github.com/Beellix-dev/dsh-beellix-plugin/blob/main/docs/verification.md)。
 
+### 修复
+
+- 兼容既有 `@beellix` 目录标记、插件环境及业务登记，保留原身份和资料。
+- 场景状态读取失败时保留原生工作区列表及新建入口，重试后恢复场景显示。
+- 不再将中台自己的加载占位误报为 DSH 导航结构变化。
+- 阻止同一业务 ID 的包名变更被当作普通升级或重复安装。
+
 ### 产品文档
 
 - 按 Beelli X 官网定位说明 Harness、中台、插件及生态平台的关系。

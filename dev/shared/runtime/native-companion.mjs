@@ -81,7 +81,7 @@ export async function restoreCompanionEnvironment(root,{invocation,subprocess,si
   if(!invocation?.command||!Array.isArray(invocation.args)||!subprocess?.spawn)throw Error('DSH 配套依赖恢复服务未就绪')
   const environment=join(root,'environment'),manifest=await plainJson(join(environment,'package.json'))
   await directory(environment)
-  if(manifest.name!=='@beellix-ai/local-environment'||manifest.private!==true||!manifest.dependencies||typeof manifest.dependencies!=='object')throw Error('应用环境格式不支持自动恢复')
+  if(!isEnvironment(manifest))throw Error('应用环境格式不支持自动恢复')
   const registry=await plainJson(join(root,'registry.json')),registered=new Map((registry.plugins??[]).map(item=>[item.name,item]))
   for(const [name,spec]of Object.entries(manifest.dependencies)){
     if(!registered.has(name)||typeof spec!=='string'||!spec.startsWith('file:'))throw Error('应用依赖缺少可核验的本地安装包，请保留 environment/packages 后重试')
@@ -104,6 +104,10 @@ const addonDefinitions = [
 ]
 const addonCategories = new Set(['models','tools','mcp','skills','resources','scenarios'])
 const ownPackage = name => typeof name === 'string' && /^@beellix-ai\/[a-z0-9][a-z0-9-]{0,80}$/u.test(name)
+// 仅在既有本地登记、恢复及来源核验中接回旧命名空间；新导入仍受 ownPackage 限制。
+const managedPackage = name => ownPackage(name) || typeof name === 'string' && /^@beellix\/[a-z0-9][a-z0-9-]{0,80}$/u.test(name)
+const isEnvironment = value => ['@beellix-ai/local-environment','@beellix/local-environment'].includes(value?.name) && value.private === true && value.dependencies && typeof value.dependencies === 'object' && !Array.isArray(value.dependencies)
+const packageLabel = name => name.split('/').at(-1)
 const packageVersion=value=>typeof value==='string'&&/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[a-zA-Z0-9.-]+)?$/u.test(value)
 function newer(next,current){
  if(!packageVersion(next)||!packageVersion(current))return false
@@ -139,9 +143,9 @@ export class NativeAddons {
     await this.saveOperation(value);return value
   }
   async rollback(value){
-    if(value?.schemaVersion!==1||value.status!=='pending'||!['install','remove'].includes(value.operation)||!ownPackage(value.name)||!packageVersion(value.version)||typeof value.before?.manifest!=='string'||typeof value.before?.registry!=='string')throw Error('ADDON_RECOVERY_INVALID')
+    if(value?.schemaVersion!==1||value.status!=='pending'||!['install','remove'].includes(value.operation)||!managedPackage(value.name)||!packageVersion(value.version)||typeof value.before?.manifest!=='string'||typeof value.before?.registry!=='string')throw Error('ADDON_RECOVERY_INVALID')
     const before=value.before,manifest=JSON.parse(before.manifest),registry=JSON.parse(before.registry),previous=registry.plugins?.find(row=>row.name===value.name)
-    if(manifest.name!=='@beellix-ai/local-environment'||manifest.private!==true||registry.schemaVersion!==1||!Array.isArray(registry.plugins)||Boolean(previous)!==Boolean(manifest.dependencies?.[value.name])||previous&&(previous.directory!=='environment/node_modules/'+value.name||!packageVersion(previous.version))||before.bundle&&(!previous||before.bundle.version!==previous.version||typeof before.bundle.enabled!=='boolean'))throw Error('ADDON_RECOVERY_INVALID')
+    if(!isEnvironment(manifest)||registry.schemaVersion!==1||!Array.isArray(registry.plugins)||Boolean(previous)!==Boolean(manifest.dependencies?.[value.name])||previous&&(previous.directory!=='environment/node_modules/'+value.name||!packageVersion(previous.version))||before.bundle&&(!previous||before.bundle.version!==previous.version||typeof before.bundle.enabled!=='boolean'))throw Error('ADDON_RECOVERY_INVALID')
     if(!this.restoreEnvironment)throw Error('ADDON_ROLLBACK_REQUIRED')
     const target=resolve(this.root,'environment/node_modules',value.name),current=(await this.pluginManager.listBundles()).find(row=>row.name===value.name&&row.installed)
     if(current){
@@ -166,13 +170,13 @@ export class NativeAddons {
     return withFileLock(join(this.root,'data/control-plane/application-recovery.json'),()=>this.recoverLocked())
   }
   async catalog() {
-    try { const value = await plainJson(join(this.root, 'config/install-catalog.json')); if (value.schemaVersion !== 1 || !Array.isArray(value.packages) || value.packages.length > 200 || new Set(value.packages.map(row => row.id)).size !== value.packages.length || new Set(value.packages.map(row => row.name)).size !== value.packages.length || value.packages.some(row=>!ownPackage(row.name)||typeof row.id!=='string'||!/^[a-z0-9][a-z0-9-]{0,80}$/u.test(row.id)||!addonCategories.has(row.category??addonDefinitions.find(item=>item.id===row.id)?.category))) throw Error('ADDON_PACKAGE_INVALID'); return value.packages }
+    try { const value = await plainJson(join(this.root, 'config/install-catalog.json')); if (value.schemaVersion !== 1 || !Array.isArray(value.packages) || value.packages.length > 200 || new Set(value.packages.map(row => row.id)).size !== value.packages.length || new Set(value.packages.map(row => row.name)).size !== value.packages.length || value.packages.some(row=>!managedPackage(row.name)||typeof row.id!=='string'||!/^[a-z0-9][a-z0-9-]{0,80}$/u.test(row.id)||!addonCategories.has(row.category??addonDefinitions.find(item=>item.id===row.id)?.category))) throw Error('ADDON_PACKAGE_INVALID'); return value.packages }
     catch (error) { if (error.code === 'ENOENT') return []; throw error }
   }
   async package(id) {
     const item = (await this.catalog()).find(row => row.id === id), definition = addonDefinitions.find(row => row.id === id) ?? item
     if (!definition || !item) throw Error('ADDON_PACKAGE_UNAVAILABLE')
-    if (item.name !== definition.name || !/^\d+\.\d+\.\d+(?:-[a-zA-Z0-9.-]+)?$/u.test(item.version) || typeof item.archive !== 'string' || !/^environment\/packages\/[a-zA-Z0-9._-]+\.tgz$/u.test(item.archive) || !/^[a-f0-9]{64}$/u.test(item.sha256)) throw Error('ADDON_PACKAGE_INVALID')
+    if (item.name !== definition.name && item.name !== '@beellix/'+definition.id || !/^\d+\.\d+\.\d+(?:-[a-zA-Z0-9.-]+)?$/u.test(item.version) || typeof item.archive !== 'string' || !/^environment\/packages\/[a-zA-Z0-9._-]+\.tgz$/u.test(item.archive) || !/^[a-f0-9]{64}$/u.test(item.sha256)) throw Error('ADDON_PACKAGE_INVALID')
     const path = resolve(this.root, item.archive)
     await directory(join(this.root, 'environment/packages'))
     const stat = await lstat(path)
@@ -192,7 +196,7 @@ export class NativeAddons {
     const category=item.category??definition.category
     if (manifest?.name !== item.name || manifest?.version !== item.version || !manifest?.dsh?.bundle || (category==='scenarios'?manifest?.beellixScenario?.id:manifest?.beellixCapability?.id) !== id || (manifest?.beellixCapability?.category && manifest.beellixCapability.category!==category)) throw Error('ADDON_PACKAGE_INVALID')
     const contract=packageContract(manifest)
-    return { ...item, category, catalogCategory:packageCatalogCategory(manifest), contract, title:item.title??definition.title??manifest.beellix?.displayName?.zh??item.name.slice('@beellix-ai/'.length), path }
+    return { ...item, category, catalogCategory:packageCatalogCategory(manifest), contract, title:item.title??definition.title??manifest.beellix?.displayName?.zh??packageLabel(item.name), path }
   }
   async owned() {
     let registry
@@ -200,7 +204,7 @@ export class NativeAddons {
     if(registry.schemaVersion!==1||!Array.isArray(registry.plugins))throw Error('ADDON_REGISTRY_INVALID')
     const rows=[]
     for(const row of registry.plugins){
-      if(!ownPackage(row.name))continue
+      if(!managedPackage(row.name))continue
       if(row.directory!=='environment/node_modules/'+row.name)throw Error('ADDON_REGISTRY_INVALID')
       const target=resolve(this.root,row.directory)
       if(!inside(await realpath(join(this.root,'environment')),await realpath(target)))throw Error('ADDON_PACKAGE_INVALID')
@@ -209,7 +213,8 @@ export class NativeAddons {
       const id=manifest.beellixScenario?.id??manifest.beellixCapability?.id, category=manifest.beellixScenario?'scenarios':manifest.beellixCapability?.category??addonDefinitions.find(item=>item.id===id)?.category
       if(!id||!addonCategories.has(category))continue
       const capability=capabilityDefinition(manifest),contract=packageContract(manifest)
-      rows.push({id,name:row.name,title:manifest.beellix?.displayName?.zh??addonDefinitions.find(item=>item.id===id)?.title??row.name.slice('@beellix-ai/'.length),category,catalogCategory:packageCatalogCategory(manifest),version:manifest.version,directory:target,archiveSha256:row.archiveSha256,contract,...capability?.panel?{panel:capability.panel}:{},...capability?.configPanel?{configPanel:capability.configPanel}:{},...manifest.beellixModels?{models:modelDefinition(manifest)}:{}})
+      if(rows.some(item=>item.id===id))throw Error('ADDON_IDENTITY_CONFLICT')
+      rows.push({id,name:row.name,title:manifest.beellix?.displayName?.zh??addonDefinitions.find(item=>item.id===id)?.title??packageLabel(row.name),category,catalogCategory:packageCatalogCategory(manifest),version:manifest.version,directory:target,archiveSha256:row.archiveSha256,contract,...capability?.panel?{panel:capability.panel}:{},...capability?.configPanel?{configPanel:capability.configPanel}:{},...manifest.beellixModels?{models:modelDefinition(manifest)}:{}})
     }
     return rows
   }
@@ -217,11 +222,12 @@ export class NativeAddons {
     await this.recover()
     const [bundles,catalog,owned] = await Promise.all([this.pluginManager.listBundles(),this.catalog(),this.owned()])
     const definitions=new Map(addonDefinitions.map(row=>[row.id,row]))
-    for(const row of [...catalog,...owned])definitions.set(row.id,{...definitions.get(row.id),...row,title:row.title??definitions.get(row.id)?.title??row.name.slice('@beellix-ai/'.length)})
+    for(const row of [...catalog,...owned])definitions.set(row.id,{...definitions.get(row.id),...row,title:row.title??definitions.get(row.id)?.title??packageLabel(row.name)})
     return Promise.all([...definitions.values()].map(async definition => {
       const local=owned.find(row=>row.name===definition.name), installed = bundles.find(row => row.name === definition.name && row.installed && row.availability !== 'missing')
       let offered,packageError
       if(catalog.some(row=>row.id===definition.id)){try{offered=await this.package(definition.id)}catch{packageError='安装包校验失败，请重新导入'}}
+      if(local&&offered&&local.name!==offered.name){offered=undefined;packageError='安装包身份已变化，需单独迁移；现有插件已保留'}
       if(local){const matched=await new CompanionApplications(this.root,this.pluginManager).matches(installed,local);return{...definition,version:local.version,enabled:Boolean(installed?.enabled),state:matched?(installed.error?'failed':installed.restartRequired?'pending':installed.enabled?'enabled':'disabled'):'pending',packageError,...offered&&(newer(offered.version,local.version)||offered.version===local.version&&/^[a-f0-9]{64}$/u.test(local.archiveSha256??'')&&offered.sha256!==local.archiveSha256)?{updateVersion:offered.version,updateKind:offered.version===local.version?'rebuild':'version',digest:offered.sha256}:{}}}
       if (this.pending?.id === definition.id) return { ...definition, state: 'installing' }
       if(packageError)return{...definition,state:'invalid',packageError}
@@ -265,6 +271,7 @@ export class NativeAddons {
     await directory(join(this.root,'data/control-plane'))
     return withFileLock(join(this.root,'data/control-plane/application-recovery.json'),async()=>{
       await this.recoverLocked()
+      if((await this.owned()).some(row=>row.id===id&&row.name!==manifest.name))throw Error('ADDON_IDENTITY_MIGRATION_REQUIRED')
       const catalog=await this.catalog(),existing=catalog.find(row=>row.id===id||row.name===manifest.name)
       if(existing&&(existing.id!==id||existing.name!==manifest.name)||!existing&&catalog.length>=200)throw Error('ADDON_PACKAGE_INVALID')
       const sha256=createHash('sha256').update(bytes).digest('hex'),archive='environment/packages/'+manifest.name.slice('@beellix-ai/'.length)+'-'+manifest.version+'-'+sha256+'.tgz',path=join(this.root,archive)
@@ -290,7 +297,7 @@ export class NativeAddons {
       if(owned.version!==input.expectedVersion||Boolean(bundle?.enabled)!==input.expectedEnabled)throw Error('ADDON_PACKAGE_CHANGED')
       if(bundle&&(!bundle.removable||!await new CompanionApplications(this.root,this.pluginManager).matches(bundle,owned)))throw Error('ADDON_FOREIGN_REGISTRATION')
       const path=join(this.root,'environment/package.json'),registryPath=join(this.root,'registry.json'),manifest=await plainJson(path),registry=await plainJson(registryPath)
-      if(manifest.private!==true||manifest.name!=='@beellix-ai/local-environment'||registry.schemaVersion!==1||!Array.isArray(registry.plugins)||!manifest.dependencies?.[owned.name])throw Error('ADDON_ENVIRONMENT_CHANGED')
+      if(!isEnvironment(manifest)||registry.schemaVersion!==1||!Array.isArray(registry.plugins)||!manifest.dependencies?.[owned.name])throw Error('ADDON_ENVIRONMENT_CHANGED')
       const bytes=await readFile(path),registryBytes=await readFile(registryPath);await backupFile(this.root,path,bytes);await backupFile(this.root,registryPath,registryBytes)
       const dependencies={...manifest.dependencies};delete dependencies[owned.name]
       const operation=await this.beginOperation('remove',owned.name,owned.version,bytes,registryBytes,bundle)
@@ -311,7 +318,8 @@ export class NativeAddons {
     return withFileLock(join(this.root, 'data/control-plane/application-recovery.json'), async () => {
       await this.recoverLocked()
       const manifest = await plainJson(path)
-      if (manifest.private !== true || manifest.name !== '@beellix-ai/local-environment') throw Error('ADDON_ENVIRONMENT_CHANGED')
+      if (!isEnvironment(manifest)) throw Error('ADDON_ENVIRONMENT_CHANGED')
+      if((await this.owned()).some(row=>row.id===item.id&&row.name!==item.name))throw Error('ADDON_IDENTITY_MIGRATION_REQUIRED')
       const backup = join(this.root, 'backups/environment'); await directory(backup)
       const bytes = await readFile(path); const backupPath = join(backup, createHash('sha256').update(bytes).digest('hex') + '-package.json')
       try { await copyFile(path, backupPath, 1) } catch (error) { if (error.code !== 'EEXIST') throw error; const stat = await lstat(backupPath); if (stat.isSymbolicLink() || !stat.isFile() || !(await readFile(backupPath)).equals(bytes)) throw Error('ADDON_BACKUP_INVALID') }

@@ -50,6 +50,8 @@ test('依赖恢复使用宿主包管理器和隔离目录，禁止脚本，拒�
   const calls=[],options={invocation:{command:'native-node',args:['native-pnpm.cjs'],env:{}},subprocess:{spawn:async request=>{calls.push(request);return{done:Promise.resolve({exitCode:0})}}}}
   await restoreCompanionEnvironment(f.root,options)
   assert.equal(calls[0].cwd,environment);assert(calls[0].argv.includes('--offline'));assert(calls[0].argv.includes('--ignore-scripts'));assert(calls[0].argv.includes('--ignore-pnpmfile'))
+  manifest.name='@beellix/local-environment';const original=JSON.stringify(manifest);await writeFile(join(environment,'package.json'),original)
+  await restoreCompanionEnvironment(f.root,options);assert.equal(calls.length,2);assert.equal(await readFile(join(environment,'package.json'),'utf8'),original)
   manifest.dependencies['@beellix-ai/quote']='https://unknown/package.tgz';await writeFile(join(environment,'package.json'),JSON.stringify(manifest))
-  await assert.rejects(restoreCompanionEnvironment(f.root,options),/本地安装包/);assert.equal(calls.length,1)
+  await assert.rejects(restoreCompanionEnvironment(f.root,options),/本地安装包/);assert.equal(calls.length,2)
 })

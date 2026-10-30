@@ -8,7 +8,13 @@ export function installSceneSidebar({document,onTargets,getMode,onNewSession,com
   const sync=()=>{
     frame=0;if(disposed)return
     const target=locateSceneSidebar(document)
-    if(!target){release();if(document.querySelector('[data-slot="sidebar.workspaces"]'))compatibility?.report({code:'NATIVE_SIDEBAR_SHAPE_CHANGED',message:'当前 DSH 导航结构有变化，场景入口暂不可用；工作区已保留。'});return}
+    if(!target){
+      release()
+      const slot=document.querySelector('[data-slot="sidebar.workspaces"]')
+      if(slot?.querySelector('[data-beellix-workspace-state="loading"]'))compatibility?.clear?.('NATIVE_SIDEBAR_SHAPE_CHANGED')
+      else if(slot)compatibility?.report({code:'NATIVE_SIDEBAR_SHAPE_CHANGED',message:'当前 DSH 导航结构有变化，场景入口暂不可用；工作区已保留。'})
+      return
+    }
     compatibility?.clear?.('NATIVE_SIDEBAR_SHAPE_CHANGED')
     const {header,root,label}=target
     if(current?.root!==root||!current.head.isConnected||!current.body.isConnected){

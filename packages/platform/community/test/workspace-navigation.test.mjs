@@ -2,6 +2,16 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import {installWorkspaceNavigation} from '../src/workspace-scope.mjs'
 
+test('场景服务失败不阻断原生工作区新增；加载中仍等待归属，恢复后仍按场景路由',async()=>{
+ const calls=[],issues=[];let view={ready:false,mode:'scenes',links:{},error:'目录不兼容'}
+ const ctx={uiWorkspace:{startSession:(...args)=>calls.push(args)},sessions:{list:{getSnapshot:()=>({byId:{plain:{id:'plain'}}})}},workspaces:{list:{getSnapshot:()=>({items:[{workspaceId:'project',sessionIds:['plain']}]})}},uiSession:{adapter:{current:{getSnapshot:()=>({key:'plain'})}}}}
+ const nav=installWorkspaceNavigation(ctx,{getSnapshot:()=>view},{compatibility:{report:issue=>issues.push(issue),clear:()=>{}}})
+ await ctx.uiWorkspace.startSession('project');assert.deepEqual(calls,[['project',undefined]])
+ view={...view,error:''};await ctx.uiWorkspace.startSession('project');assert.equal(calls.length,1);assert.equal(issues.at(-1).code,'WORKSPACE_SCOPE_PENDING')
+ view={...view,ready:true,startSceneSession:()=>calls.push('scene')};await ctx.uiWorkspace.startSession();assert.equal(calls.at(-1),'scene')
+ nav.dispose()
+})
+
 test('DSH 原生目录入口在场景中建对应场景会话，传递原生草稿回调；工作区保持原行为',async()=>{
  const calls=[],before=()=>{},native=function(...args){calls.push({native:args,receiver:this})}
  let view={ready:true,mode:'scenes',links:{quote:'quotation'},changeSceneDirectory:async input=>calls.push(input)}

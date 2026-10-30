@@ -43,7 +43,9 @@ export function SceneNavigation({ctx,prepare,setSceneView,useSidebarMounted,useS
   const compatibilityState=useSyncExternalStore(fn=>compatibility?.subscribe(fn)??(()=>{}),()=>compatibility?.getSnapshot()??EMPTY_COMPATIBILITY)
   const workspaceState=useSyncExternalStore(listener=>ctx.workspaces?.list.subscribe(listener)??(()=>{}),()=>ctx.workspaces?.list.getSnapshot()??EMPTY_WORKSPACES)
   const archived=new Set(workspaceState.archivedSessionIds??[])
-  modeRef.current=mode
+  // 未取得可信场景状态时临时保留原生工作区；不改写用户原显示偏好。
+  const effectiveMode=!state&&error?'workspace':mode
+  modeRef.current=effectiveMode
   const sessions=useSyncExternalStore(listener=>ctx.sessions.list.subscribe(listener),()=>ctx.sessions.list.getSnapshot())
   const selection=useSyncExternalStore(listener=>ctx.uiSession.adapter.current.subscribe(listener),()=>ctx.uiSession.adapter.current.getSnapshot())
   const current=selection?.key
@@ -53,10 +55,10 @@ export function SceneNavigation({ctx,prepare,setSceneView,useSidebarMounted,useS
   useEffect(()=>installSceneSidebar({document,onTargets:setTargets,getMode:()=>modeRef.current,onNewSession:()=>newRef.current(),compatibility}),[])
   useEffect(()=>{void Promise.resolve(prepare?.()).then(()=>reload()).catch(e=>setError(e.message))},[])
   useEffect(()=>{let active=true;const off=sceneChanges?.subscribe(()=>{void reload().catch(e=>{if(active)setError(e.message)})});return()=>{active=false;loadGeneration.current++;off?.()}},[sceneChanges])
-  useEffect(()=>{if(startupApplied.current)try{localStorage.setItem(viewKey,mode)}catch{}targets?.refresh()},[mode,targets])
+  useEffect(()=>{if(startupApplied.current)try{localStorage.setItem(viewKey,mode)}catch{}targets?.refresh()},[mode,effectiveMode,targets])
   const scenes=state?.scenes??[]
   const retainedRecords=new Set(state?.retainedSessionIds??[])
-  useEffect(()=>{setSceneView({mode,links:state?.links??{},installed:state?.installed??[],sceneSessionIds:state?.sceneSessionIds??[],managedWorkspaceIds:state?.managedWorkspaceIds??[],clearedSessionIds:state?.clearedSessionIds??[],startSceneSession:()=>newRef.current(),changeSceneDirectory:input=>directoryRef.current(input),ready:Boolean(state),error})},[mode,state,error])
+  useEffect(()=>{setSceneView({mode:effectiveMode,links:state?.links??{},installed:state?.installed??[],sceneSessionIds:state?.sceneSessionIds??[],managedWorkspaceIds:state?.managedWorkspaceIds??[],clearedSessionIds:state?.clearedSessionIds??[],startSceneSession:()=>newRef.current(),changeSceneDirectory:input=>directoryRef.current(input),ready:Boolean(state),error})},[mode,state,error])
   useEffect(()=>{
     if(!startupApplied.current){
       if(!state||!preference.ready&&!preference.error||sessions.phase&&sessions.phase!=='ready'||workspaceState.phase&&workspaceState.phase!=='ready')return
@@ -159,7 +161,7 @@ export function SceneNavigation({ctx,prepare,setSceneView,useSidebarMounted,useS
     const value=await api('reconnect-session',{token:state.csrfToken,input:recovery.current});recovery.current=null;await reload();open(value.sessionId,scene);return true
   }catch(e){setError('记录尚未接回：'+e.message);return false}finally{setBusy(false)}}
   const installed=(state?.installed??[]).filter(scene=>(scene.title+' '+scene.id).toLocaleLowerCase().includes(pickerQuery.trim().toLocaleLowerCase()))
-  const head=h('div',{className:'beellix-scene-heading'},h('div',{className:'beellix-scene-switch',role:'group','aria-label':'左侧目录类型'},...['workspace','scenes'].map(value=>h('button',{key:value,type:'button',disabled:busy,'aria-pressed':mode===value,onClick:()=>void switchView(value)},value==='workspace'?'工作区':'场景'))),mode==='scenes'?h('button',{type:'button',className:'beellix-scene-icon','aria-label':'添加已安装场景',title:'添加已安装场景',onClick:()=>void showPicker()},h(Icon,{kind:'plus'})):null)
+  const head=h('div',{className:'beellix-scene-heading'},h('div',{className:'beellix-scene-switch',role:'group','aria-label':'左侧目录类型'},...['workspace','scenes'].map(value=>h('button',{key:value,type:'button',disabled:busy||value==='scenes'&&!state,'aria-pressed':effectiveMode===value,onClick:()=>void switchView(value)},value==='workspace'?'工作区':'场景'))),effectiveMode==='scenes'?h('button',{type:'button',className:'beellix-scene-icon','aria-label':'添加已安装场景',title:'添加已安装场景',onClick:()=>void showPicker()},h(Icon,{kind:'plus'})):null)
   const body=h('div',{className:'beellix-scenes'},error?h('div',{role:'alert',className:'beellix-scene-error'},h('p',{},error),h('button',{onClick:()=>void reload().catch(e=>setError(e.message))},'重试')):null,
     !state&&!error?h('p',{className:'beellix-scene-hint'},'正在读取场景…'):null,
     state&&!scenes.length?h('div',{className:'beellix-scene-empty'},h(Icon,{kind:'folder',size:28}),h('p',{},'添加场景，开始专属对话'),h('button',{onClick:()=>void showPicker()},'添加已安装场景')):null,
@@ -175,6 +177,6 @@ export function SceneNavigation({ctx,prepare,setSceneView,useSidebarMounted,useS
     pickerLoading?h('p',{role:'status'},'正在读取已安装场景…'):h('div',{className:'beellix-scene-selector-list'},...installed.map(scene=>{const added=scenes.some(row=>row.id===scene.id);return h('article',{key:scene.id},h(ConsoleIcon,{kind:'scenarios',size:24}),h('div',{},h('strong',{},scene.title),h('small',{},'v'+scene.version,' · ',!scene.enabled?'未启用':added?'已添加':'已安装')),h('button',{'aria-label':(added?'打开 ':'添加 ')+scene.title,disabled:busy||pickerLoading||!scene.enabled,onClick:()=>void chooseScene(scene)},!scene.enabled?'未启用':added?'打开':'添加并打开'))})),
     !pickerLoading&&!installed.length?h('p',{role:'status'},pickerQuery?'没有匹配的场景':state?.installed?.length?'没有匹配的场景':'暂无已安装场景'):null,
     h('footer',{},h('button',{disabled:busy,onClick:()=>{setPicker(false);openSceneManager?.()}},'场景管理'),h('button',{disabled:busy,onClick:()=>void showPicker()},'刷新')))
-  const notice=compatibilityState.issues.length?h('div',{role:'status',className:'beellix-compatibility-notice'},compatibilityState.issues.map(row=>h('p',{key:row.code},row.message))):null
+  const notice=compatibilityState.issues.length||!state&&error?h('div',{role:'status',className:'beellix-compatibility-notice'},compatibilityState.issues.map(row=>h('p',{key:row.code},row.message)),!state&&error?h(React.Fragment,{},h('p',{},'场景暂不可用：'+error),h('button',{type:'button',onClick:()=>void reload().catch(e=>setError(e.message))},'重试')):null):null
   return h(React.Fragment,{},notice,targets?h(React.Fragment,{},createPortal(head,targets.head),createPortal(body,targets.body),chooser):null)
 }

@@ -26,7 +26,7 @@ export function installWorkspaceNavigation(ctx,viewSource,{compatibility}={}){
  const runNative=(...args)=>{workspaceStartDepth++;try{return native.call(service,...args)}finally{workspaceStartDepth--}}
  const openWorkspace=async(workspaceId,beforeOpen,options)=>{
   const view=viewSource.getSnapshot(),sessionId=ctx.uiSession.adapter.current.getSnapshot()?.key,sceneId=view.links?.[sessionId]
-  if(workspaceStartDepth||view.mode!=='scenes'||!sceneId)return nativeOpen.call(service,workspaceId,beforeOpen,options)
+  if(workspaceStartDepth||view.mode!=='scenes'||!sceneId||!view.ready&&view.error)return nativeOpen.call(service,workspaceId,beforeOpen,options)
   if(disposed)return
   if(!view.ready||typeof view.changeSceneDirectory!=='function')throw Error('场景目录入口尚未就绪，请稍后重试')
   return view.changeSceneDirectory({sessionId,sceneId,workspaceId,beforeOpen})
@@ -34,8 +34,11 @@ export function installWorkspaceNavigation(ctx,viewSource,{compatibility}={}){
  if(typeof nativeOpen==='function')service.openWorkspace=openWorkspace
  async function start(workspaceId,options,requestedMode){
   try{
-   const snapshot=viewSource.getSnapshot(),view=requestedMode?{...snapshot,mode:requestedMode}:snapshot
-   if(!view.ready){compatibility?.report?.({code:'WORKSPACE_SCOPE_PENDING',message:'对话归属仍在读取，请稍后重试新建。'});return}
+   const snapshot=viewSource.getSnapshot();let view=requestedMode?{...snapshot,mode:requestedMode}:snapshot
+   if(!view.ready){
+    if(!view.error){compatibility?.report?.({code:'WORKSPACE_SCOPE_PENDING',message:'对话归属仍在读取，请稍后重试新建。'});return}
+    view={...view,mode:'workspace'}
+   }
    compatibility?.clear?.('WORKSPACE_SCOPE_PENDING')
    if(view.mode==='scenes'&&workspaceId===undefined)return view.startSceneSession?.()
    const freshRequested=options===undefined;let correctedDefault=false
@@ -99,7 +102,9 @@ export function installWorkspaceScope(ctx,viewSource,{retry,compatibility}={}){
     const projection=useMemo(()=>projectWorkspaceDirectory({sessions,workspaces,scene}),[sessions,workspaces,scene])
     const useSessions=useCallback(selector=>selector(projection.sessions),[projection.sessions]),useWorkspaces=useCallback(selector=>selector(projection.workspaces),[projection.workspaces])
     const searchSessions=useCallback(async(...args)=>{const result=await props.searchSessions(...args);return filterWorkspaceSearch(result,project())},[props.searchSessions,scene])
-    if(!scene.ready)return React.createElement('div',{className:'beellix-workspace-reading',role:scene.error?'alert':'status'},scene.error?'工作区列表暂不可用':'正在读取工作区…',scene.error&&React.createElement('button',{type:'button',onClick:retry},'重试'))
+    // 中台异常不接管 DSH 的工作区故障状态；原生列表及操作仍可使用。
+    if(!scene.ready&&scene.error)return React.createElement(NativeWorkspace,props)
+    if(!scene.ready)return React.createElement('div',{className:'beellix-workspace-reading','data-beellix-workspace-state':'loading',role:'status'},'正在读取工作区…')
     return React.createElement(NativeWorkspace,{...props,useSessions,useWorkspaces,searchSessions})
    }
    // 保留原登记身份：renderSlot 授权属于它，复制登记会丢失子槽，重声明又会冲突。

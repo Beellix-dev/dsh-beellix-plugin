@@ -11,7 +11,7 @@ export function capabilityDefinition(manifest){
  if(!value||typeof value!=='object'||Array.isArray(value)||!/^[a-z][a-z0-9-]{0,79}$/u.test(value.id??''))throw Error('ADDON_CONTRACT_INVALID')
  const category=value.category??(['knowledge','data-platform'].includes(value.id)?'resources':undefined)
  if(!['models','tools','mcp','skills','resources'].includes(category))throw Error('ADDON_CONTRACT_INVALID')
- if(['knowledge','data-platform'].includes(value.id)&&(manifest.name!=='@beellix-ai/'+value.id||category!=='resources'))throw Error('ADDON_CONTRACT_INVALID')
+ if(['knowledge','data-platform'].includes(value.id)&&(!['@beellix-ai/'+value.id,'@beellix/'+value.id].includes(manifest.name)||category!=='resources'))throw Error('ADDON_CONTRACT_INVALID')
  const ui=value.ui??{};if(!ui||typeof ui!=='object'||Array.isArray(ui)||Object.keys(ui).some(key=>!['panel','configPanel'].includes(key)))throw Error('ADDON_CONTRACT_INVALID')
  const prefix='beellix-'+value.id
  for(const panel of Object.values(ui))if(typeof panel!=='string'||panel.length>120||!/^beellix-[a-z0-9-]+$/u.test(panel)||panel!==prefix&&!panel.startsWith(prefix+'-'))throw Error('ADDON_CONTRACT_INVALID')

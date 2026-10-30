@@ -24,6 +24,7 @@
   "knowledge-sessions-api.test.mjs",
   "knowledge-sessions.test.mjs",
   "layout.test.mjs",
+  "legacy-installation.test.mjs",
   "local-owner.test.mjs",
   "mode-control.test.mjs",
   "model-directory.test.mjs",
