@@ -1,12 +1,12 @@
 # 文档中心
 
-[产品首页](../README.md) · [更新记录](../CHANGELOG.md) · [贡献](../CONTRIBUTING.md) · [安全](../SECURITY.md)
+[官网](https://www.beellix.com) · [项目首页](../README.md) · [更新记录](../CHANGELOG.md) · [贡献](../CONTRIBUTING.md) · [安全](../SECURITY.md)
 
 ## 使用 Beelli X
 
 | 文档 | 回答的问题 |
 | --- | --- |
-| [产品概览](product-overview.md) | Beelli X、中台、DSH、插件和官网如何组成产品体系？ |
+| [产品说明](product-overview.md) | DSH 底座、中台连接、三类插件、场景二级分类和应用组装如何配合？ |
 | [安装与首次使用](getting-started.md) | 如何安装、初始化和验证入口？ |
 | [功能说明](features.md) | 工作区、场景和中台各负责什么？ |
 | [配置说明](configuration.md) | 主模型、插件模型、用量和余额如何配置？ |
