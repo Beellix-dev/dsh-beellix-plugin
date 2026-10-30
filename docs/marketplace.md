@@ -1,6 +1,6 @@
 # DSH 市场适配
 
-社区入口为 `@beellix-ai/dsh-beellix-plugin`，版本0.1.1、MIT。只发布社区中台；知识库、数据库和场景另由 Beelli X 中台管理。
+社区入口为 `@beellix-ai/dsh-beellix-plugin`，版本0.1.1、MIT。DSH 市场分发社区入口，Beelli X 中台管理业务与能力插件，两者分别维护发行清单和生命周期。
 
 ## 已实现
 
@@ -8,7 +8,7 @@
 
 验收基线为原生 API 0.2.1-rc.2 / Next 2.0.19-next。Windows 已通过182项独立测试，含官方 Cordis、Tools、Skills 的加载、调用和释放；完整桌面和真实模型另行验收。
 
-Windows / Linux 自动检查模板在 `dev/config/community-checks.yml`。当前上传凭据没有 GitHub workflow 权限，模板尚未启用，Linux CI 尚未验证。维护者可将模板放入 `.github/workflows/check.yml` 启用；未执行的检查不计为通过。
+Windows / Linux 自动检查模板在 `dev/config/community-checks.yml`，启用方法见[开发指南](development.md)。当前验证记录见[验证说明](verification.md)。
 
 ## 收录条件
 
@@ -25,7 +25,7 @@ Windows / Linux 自动检查模板在 `dev/config/community-checks.yml`。当前
 - 中文：为 DeepSeek Harness 提供模型配置、自有插件管理和工作区／场景导航的社区中台。
 - English: A community control center for DeepSeek Harness with model configuration, managed plugin lifecycle, and workspace and scene navigation.
 
-**npm 尚未发布，市场尚未批准收录。** 不将本地测试或 GitHub 上传视为上述步骤完成；同名同版本不能覆盖发布。
+当前发行渠道为本 GitHub 仓库；npm 发布和市场收录分别办理并记录结果。npm 正式发行固定版本与制品摘要，已发布版本不覆盖。
 
 规则核验日期：2026-10-30。
 

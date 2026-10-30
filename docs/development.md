@@ -50,6 +50,6 @@ corepack yarn pack --out plugin.tgz
 
 只在独立测试目录和配置中验收。不要覆盖个人 Profile、旧会话、业务资料或密钥，不修改原版 DSH 源码证明兼容。插件版本保持0.1.1；维护者批准新版本前不自行递增，也不覆盖已经发布的同名同版本 npm 包。
 
-自动检查模板为 `dev/config/community-checks.yml`，尚未启用为 GitHub Actions。当前测试范围见[验证说明](verification.md)。贡献流程见 [CONTRIBUTING](../CONTRIBUTING.md)。
+自动检查模板为 `dev/config/community-checks.yml`。维护者启用时，将其保存为 `.github/workflows/check.yml` 并提交；仓库需具备 Actions 运行条件。当前模板尚未启用，测试范围见[验证说明](verification.md)。贡献流程见 [CONTRIBUTING](../CONTRIBUTING.md)。
 
 公开发行前可执行 `node dev/scripts/audit-public.mjs --history`，检查完整公开文件集合及已有 Git 历史中的高可信敏感模式；工具只报告文件或对象位置，不回显疑似密钥。
