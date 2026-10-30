@@ -1,0 +1,35 @@
+{
+ "$schema":"https://json-schema.org/draft/2020-12/schema",
+ "title":"Beelli X optional business module profile v1",
+ "type":"object","additionalProperties":false,
+ "required":["schemaVersion","moduleId","deployment","dataFeatures","engine","resources","references","verification"],
+ "properties":{
+  "schemaVersion":{"const":1},
+  "moduleId":{"type":"string","pattern":"^[a-z][a-z0-9-]{0,47}$"},
+  "deployment":{"enum":["local-owner","multi-user"]},
+  "dataFeatures":{"type":"array","uniqueItems":true,"items":{"enum":["validated-input","record-references"]},"contains":{"const":"validated-input"}},
+  "engine":{"type":"object","additionalProperties":false,"required":["kind"],"properties":{
+   "kind":{"enum":["native","existing-provider","embedded-upstream"]},
+   "provider":{"type":"string","pattern":"^@beellix-ai/[a-z][a-z0-9-]{0,47}$"},
+   "storage":{"enum":["provider","scene"]},
+   "upstream":{"type":"object","additionalProperties":false,"required":["repository","revision","license","notice","modules"],"properties":{
+    "repository":{"type":"string","pattern":"^https://[^\\s]+$","maxLength":300},
+    "revision":{"type":"string","pattern":"^[a-f0-9]{40}$"},
+    "license":{"type":"string","minLength":1,"maxLength":100},
+    "notice":{"type":"string","minLength":1,"maxLength":200},
+    "modules":{"type":"array","minItems":1,"maxItems":100,"uniqueItems":true,"items":{"type":"string","pattern":"^[a-z][a-z0-9_]{0,79}$"}}
+   }}
+  }},
+  "resources":{"type":"array","minItems":1,"maxItems":50,"items":{"type":"object","additionalProperties":false,"required":["id","actions","entities"],"properties":{
+   "id":{"type":"string","pattern":"^[a-z0-9][a-z0-9.-]{1,199}$"},
+   "actions":{"type":"array","minItems":1,"uniqueItems":true,"items":{"enum":["read","write","export"]}},
+   "review":{"const":"native"},"idempotency":{"const":true},
+   "entities":{"type":"array","maxItems":50,"items":{"type":"object","additionalProperties":false,"required":["entity","idType"],"properties":{"entity":{"type":"string","pattern":"^[a-z][a-z0-9_.-]{0,79}$"},"idType":{"enum":["string","integer"]}}}}
+  }}},
+  "references":{"type":"array","maxItems":100,"items":{"type":"object","additionalProperties":false,"required":["resource","entity","provider","required"],"properties":{
+   "resource":{"type":"string","pattern":"^[a-z0-9][a-z0-9.-]{1,199}$"},"entity":{"type":"string","pattern":"^[a-z][a-z0-9_.-]{0,79}$"},
+   "provider":{"type":"string","pattern":"^@beellix-ai/[a-z][a-z0-9-]{0,47}$"},"required":{"type":"boolean"}
+  }}},
+  "verification":{"type":"array","uniqueItems":true,"minItems":1,"maxItems":30,"items":{"enum":["input-validation","reviewed-write","idempotency","backup-restore","cancel-disable","record-reference","native-load","package-acceptance"]}}
+ }
+}

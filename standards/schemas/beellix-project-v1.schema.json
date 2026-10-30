@@ -1,0 +1,316 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Beelli X creation project descriptor v1",
+  "description": "Development-only proposed contract. Does not grant permissions or imply runtime installer support.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "standardVersion",
+    "projectId",
+    "plugin",
+    "template",
+    "ecosystem",
+    "storage",
+    "initialization",
+    "access"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "standardVersion": {
+      "enum": ["1.0.0", "1.1.0"]
+    },
+    "projectId": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "plugin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "title",
+        "type"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^@beellix-ai/[a-z][a-z0-9-]{0,79}$"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "type": {
+          "enum": [
+            "scene",
+            "tool",
+            "skill",
+            "capability",
+            "ui"
+          ]
+        }
+      }
+    },
+    "template": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "version"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{0,79}$"
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(-[0-9A-Za-z-]+(\\.[0-9A-Za-z-]+)*)?(\\+[0-9A-Za-z-]+(\\.[0-9A-Za-z-]+)*)?$"
+        }
+      }
+    },
+    "ecosystem": {
+      "type": "array",
+      "maxItems": 50,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "provider",
+          "required",
+          "contract",
+          "features"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]{0,79}$"
+          },
+          "provider": {
+            "type": "string",
+            "pattern": "^@beellix-ai/[a-z][a-z0-9-]{0,79}$"
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "contract": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "min",
+              "max"
+            ],
+            "properties": {
+              "min": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "max": {
+                "type": "integer",
+                "minimum": 1
+              }
+            }
+          },
+          "features": {
+            "type": "array",
+            "maxItems": 100,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]{0,79}$"
+            }
+          }
+        }
+      }
+    },
+    "storage": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "const": "none"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "schemaVersion"
+          ],
+          "properties": {
+            "kind": {
+              "const": "config"
+            },
+            "schemaVersion": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "schemaVersion",
+            "migrations"
+          ],
+          "properties": {
+            "kind": {
+              "const": "postgres"
+            },
+            "schemaVersion": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "migrations": {
+              "type": "string",
+              "maxLength": 200,
+              "pattern": "^(?!/)(?!.*[\\\\:])(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*//)[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)*$"
+            }
+          }
+        }
+      ]
+    },
+    "initialization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "strategy"
+      ],
+      "properties": {
+        "strategy": {
+          "enum": [
+            "none",
+            "on-first-use"
+          ]
+        }
+      }
+    },
+    "access": {
+      "type": "array",
+      "maxItems": 100,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "resource",
+          "mode",
+          "purpose"
+        ],
+        "properties": {
+          "resource": {
+            "type": "string",
+            "maxLength": 180,
+            "pattern": "^(project:files|app:files|service:[a-z][a-z0-9-]{0,79}|network:[a-z][a-z0-9.-]{0,99}|process:[a-z][a-z0-9-]{0,79})$"
+          },
+          "mode": {
+            "enum": [
+              "read",
+              "write",
+              "read-write",
+              "execute"
+            ]
+          },
+          "purpose": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300
+          }
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "storage": {
+            "properties": {
+              "kind": {
+                "const": "postgres"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "plugin": {
+            "properties": {
+              "type": {
+                "enum": [
+                  "scene",
+                  "capability"
+                ]
+              }
+            }
+          },
+          "initialization": {
+            "properties": {
+              "strategy": {
+                "const": "on-first-use"
+              }
+            }
+          },
+          "ecosystem": {
+            "contains": {
+              "properties": {
+                "id": {
+                  "const": "database"
+                },
+                "provider": {
+                  "const": "@beellix-ai/database"
+                },
+                "required": {
+                  "const": true
+                }
+              },
+              "required": [
+                "id",
+                "provider",
+                "required"
+              ]
+            }
+          },
+          "access": {
+            "contains": {
+              "properties": {
+                "resource": {
+                  "const": "service:database"
+                },
+                "mode": {
+                  "const": "read-write"
+                }
+              },
+              "required": [
+                "resource",
+                "mode"
+              ]
+            }
+          }
+        }
+      }
+    }
+  ]
+}

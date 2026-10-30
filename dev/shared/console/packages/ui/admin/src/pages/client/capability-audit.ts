@@ -1,0 +1,121 @@
+/** 已人工核对的工作区职责归属；分类不决定安装、授权、装配或启停。 */
+
+/** 管理目录采用的六种主要职责。 */
+export const capabilityCategories = ['kernel', 'services', 'features', 'data', 'security', 'ui'] as const
+/** 一个模块唯一的主要职责。 */
+export type CapabilityCategory = (typeof capabilityCategories)[number]
+
+/** 同一职责分组的名称、归类理由与精确包名单。 */
+export interface CapabilityAuditGroup {
+  readonly id: string
+  readonly category: CapabilityCategory
+  readonly zh: string
+  readonly en: string
+  readonly reason: string
+  readonly names: readonly string[]
+}
+
+/** 包名逐项登记，不按前缀、源码目录或当前运行状态自动推断归属。 */
+export const capabilityAuditGroups = [
+  {id:'beellix-native-entry',category:'features',zh:'Beelli X 原生接入',en:'Beelli X native integration',reason:'在原版 DSH 中提供中台入口、配套目录和会话场景资源装配；复用原生执行与安装服务，不代表旧中台完整迁入。',names:['dsh-ui']},
+  {id:'execution-contract',category:'kernel',zh:'执行协议契约',en:'Execution protocol contracts',reason:'定义跨进程目标、调用、回执和协议版本，不执行命令或装配智能体。',names:['execution-contract']},
+  {id:'client-executor',category:'services',zh:'本机执行器机制',en:'Device execution mechanisms',reason:'持久保存本机调用状态和回执，不依赖交互窗口，不装配智能体循环。',names:['client-executor']},
+  {id:'execution-adapters',category:'services',zh:'执行目标与工具适配',en:'Execution routing and adapters',reason:'复用现有会话和工具接口，分别路由到授权电脑与受控云端执行器，不实现第二套推理循环。',names:['execution-router','device-execution','cloud-execution','executor-profile']},
+  {id:'embedded-browser',category:'features',zh:'内置浏览器',en:'Embedded browser',reason:'管理真实 Chromium 实例并提供 AI 网页操作与人工接管。',names:['browser']},
+  {id:'mailbox',category:'ui',zh:'内部工作信箱',en:'Internal mailbox',reason:'通过既有工作台槽位提供成员往来，执行底座只通过身份桥接访问草稿和授权记录。',names:['ui-mailbox']},
+  {id:'browser-panel',category:'ui',zh:'浏览器面板',en:'Browser panel',reason:'展示同一 Chromium 实例的画面与导航，不启动智能体循环。',names:['ui-browser']},
+  {"id":"agent-runtime","category":"kernel","zh":"Agent 执行核心","en":"Agent runtime","reason":"拥有 Agent 生命周期、提示组装与工具执行机制；不代表单项模型工具。","names":["agent","agent-loop","tools","system-prompt"]},
+  {"id":"agent-composition","category":"kernel","zh":"Agent 组合与预设","en":"Agent composition","reason":"负责选择和组合 Agent 配置；浏览器选择控件另归对话功能。","names":["agent-presets","agent-tool-presentation"]},
+  {"id":"plugin-runtime","category":"kernel","zh":"插件加载与作用域","en":"Plugin runtime","reason":"管理插件树、模块解析和作用域；框架库与装配组件保留技术类型，不开放独立安装。","names":["cordis","cordis-plugin-group","cordis-plugin-include","cordis-plugin-loader","cordis-plugin-timer","client-modules","scope"]},
+  {"id":"remote-protocol","category":"kernel","zh":"服务通信与协议","en":"Service communication","reason":"提供平台调用、连接和协议反射机制，不是网页搜索或第三方业务功能。","names":["acp","api-gateway","api-remotes","client-connection","sdk-jsonrpc-server","sdk-client","sdk-protocol","typert-loader","typert-registry","typert-protocol","typert-generator"]},
+  {"id":"application-boot","category":"kernel","zh":"应用启动与装配","en":"Application assembly","reason":"拥有启动、profile 或制品入口；应用和装配包只在技术目录查阅，不冒充功能插件。","names":["acp-app","app-boot","base","cli","cmdline","harness-runtime","harness-source-profile","harness-web-profile","headless","launch-environment","python-runtime-closure","sdk-app","sdk-minimal","web-app","web-frontend","desktop","mobile"]},
+  {"id":"host-delivery","category":"kernel","zh":"宿主路由与静态资源","en":"Host delivery","reason":"提供宿主 HTTP 路由和前端资源交付，不承担模型侧网页访问。","names":["host-frontend-static","host-webserver"]},
+  {"id":"package-management","category":"kernel","zh":"插件登记与加载机制","en":"Package management","reason":"拥有插件清单、制品校验和加载接入；已定义职责不等于已接入正式装配。","names":["host-plugin-inventory","agent-package-contract","agent-package-runtime-loader","agent-package-sdk","agent-package-validator","harness-package-host"]},
+  {"id":"runtime-diagnostics","category":"kernel","zh":"运行诊断与开发支撑","en":"Runtime diagnostics","reason":"提供一致性检查、日志或开发测试支撑；开发热更新和测试包仍是技术资产。","names":["invariants","cordis-plugin-logger-console","client-hmr","cordis-plugin-hmr","agent-loop-testkit","loader-smoke"]},
+  {"id":"core-utilities","category":"kernel","zh":"共享类型与运行辅助","en":"Runtime utilities","reason":"提供跨能力共享的值、配置、时间和集合辅助，不存在独立业务启停语义。","names":["brand","cosmokit","deque","schemastery","util-values","util-crypto","lazy-require","timeout","util-time","util-code-language"]},
+  {"id":"experimental-host","category":"kernel","zh":"实验宿主","en":"Experimental hosts","reason":"职责是宿主装配和镜像准备，但实验性质不因完成归类而改变。","names":["experimental-webworker-packer","experimental-webworker-runtime"]},
+  {"id":"model-access","category":"services","zh":"模型访问","en":"Model access","reason":"提供模型请求、路由、重试及配置；官方请求元数据属于模型适配，不是通用系统遥测。","names":["llm-vendor","llm-amazon-bedrock","llm-ant-ling","llm-anthropic","llm-azure","llm-baseten","llm-cerebras","llm-cloudflare","llm-fireworks","llm-github-copilot","llm-google","llm-groq","llm-huggingface","llm-moonshot","llm-minimax","llm-mistral","llm-nvidia","llm-openai","llm-opencode","llm-openrouter","llm-qwen","llm-together","llm-vercel-ai-gateway","llm-xai","llm-xiaomi","llm-zai","agent-default-model","llm","llm-deepseek","llm-deepseek-api-key","llm-deepseek-account","llm-pi-ai","llm-retry","deepseek-llm-api-extensions","plugin-package-inventory-deepseek"]},
+  {"id":"model-test-support","category":"services","zh":"模型测试支撑","en":"Model testing","reason":"提供模型故障夹具和记录回放；留在技术目录，不当作生产提供方。","names":["llm-mock-server","llm-replay"]},
+  {"id":"filesystem-service","category":"services","zh":"文件系统服务","en":"Filesystem services","reason":"定义并实现文件访问；接口与被继承实现无需各自具有 Loader 实例，不等于文件工具入口。","names":["fs","fs-local","fs-sandbox"]},
+  {"id":"execution-service","category":"services","zh":"命令、进程与终端","en":"Process and terminal services","reason":"提供命令执行和终端资源；Bash、PowerShell、本地与沙箱实现由部署选择，不是重复的模型工具。","names":["shell","shell-env","bash-local","bash-sandbox","pwsh-local","pwsh-sandbox","subprocess","subprocess-local","win32-process","native-command","terminal","terminal-bash"]},
+  {"id":"code-service","category":"services","zh":"代码执行服务","en":"Code execution","reason":"提供可供消费者调用的代码运行后端；实验 Python 实现仍属于技术资产。","names":["ptc-runtime","ptc-runtime-node","code-runtime","code-runtime-worker-thread","experimental-code-runtime-python"]},
+  {"id":"remote-environment","category":"services","zh":"远程执行环境","en":"Remote environments","reason":"共享 E2B 执行世界的文件与进程适配组成一个扩展身份；不是三个独立安装项。","names":["e2b","fs-e2b","subprocess-e2b"]},
+  {"id":"code-navigation","category":"services","zh":"代码分析服务","en":"Code analysis","reason":"提供语言服务器查询和传输实现；模型侧导航工具另归智能体功能。","names":["lsp","lsp-stdio"]},
+  {"id":"web-service","category":"services","zh":"网页访问服务","en":"Web access services","reason":"提供搜索、抓取和出站代理实现；工具入口、宿主 HTTP 路由及事件自动化分别归属其他职责。","names":["web","web-fetch-http","web-search-deepseek","web-search-exa","web-search-perplexity","http-proxy"]},
+  {"id":"mcp-service","category":"services","zh":"MCP 连接服务","en":"MCP connections","reason":"连接 MCP 并注册其工具；通用连接机制不按某个具体第三方服务命名。","names":["mcp-client","mcp-resources"]},
+  {"id":"file-tools","category":"features","zh":"文件与代码工具","en":"File and code tools","reason":"直接向智能体提供读写、搜索和代码导航；交付文件展示另归对话功能。","names":["tool-fs","tool-fs-search","tool-str-replace-editor","tool-lsp"]},
+  {"id":"terminal-tools","category":"features","zh":"命令与终端工具","en":"Command and terminal tools","reason":"把执行服务公开为模型工具；启停只影响明确支持的工具贡献，不代表卸载终端服务。","names":["tool-bash","tool-bash-persistent","tool-pwsh","tool-pwsh-persistent","tool-terminal"]},
+  {"id":"web-tools","category":"features","zh":"网页工具","en":"Web tools","reason":"向模型提供搜索和抓取操作，不拥有具体搜索提供方。","names":["tool-web"]},
+  {"id":"skills","category":"features","zh":"技能加载","en":"Skills","reason":"提供技能发现与加载；固定徽章技能按内容用途归类，不推定部署需要启用。","names":["skill","skill-filesystem","skill-badge","tool-skill"]},
+  {"id":"request-context","category":"features","zh":"指令与上下文","en":"Instructions and context","reason":"为模型组织工作区指令、引用、时钟或提示；建议性重复提醒不作为权限控制。","names":["agent-instructions","persona","time-context","tmux-context","file-reference","file-reference-local","session-reference","repeat-tool-reminder"]},
+  {"id":"context-budget","category":"features","zh":"上下文容量管理","en":"Context management","reason":"计量并压缩模型上下文或裁剪工具结果；数据落盘由存储组件承担。","names":["compaction-image-offload","compaction","compaction-basic","compaction-tool-result-pruner","command-compact","token-meter","output-retention","spill-policy"]},
+  {"id":"goals-plans","category":"features","zh":"目标与计划","en":"Goals and plans","reason":"提供目标续行、计划、待办及对应命令；浏览器展示另归对话功能。","names":["goal","goal-round-driver","command-goal","tool-goal","plan-mode","tool-todo"]},
+  {"id":"background-jobs","category":"features","zh":"后台任务","en":"Background jobs","reason":"管理可观察的后台任务及完成通知；浏览器列表另归对话功能。","names":["jobs","jobs-local","tool-jobs"]},
+  {"id":"subagents","category":"features","zh":"子智能体协作","en":"Subagents","reason":"提供委派、控制和对应运行后端；协议名称不改变其子智能体职责，技术资产不自动晋升生产扩展。","names":["subagent","subagent-acp","subagent-claude-code","subagent-codex","subagent-dsh-sdk","subagent-fork-in-process","subagent-spawn-in-process","subagent-in-process-driver","tool-subagent","tool-subagent-control"]},
+  {"id":"workflows","category":"features","zh":"工作流编排","en":"Workflows","reason":"围绕子智能体执行编排脚本并呈现运行结果；不因内部使用线程就归为通用代码服务。","names":["workflow","workflow-worker-thread","tool-workflow","tool-ralph"]},
+  {"id":"reminders","category":"features","zh":"定时提醒","en":"Reminders","reason":"提供持久提醒与到期处理；浏览器提醒列表另归对话功能。","names":["schedule"]},
+  {"id":"event-automation","category":"features","zh":"事件与钩子自动化","en":"Event automation","reason":"把外部事件或钩子接入 Agent 行为；HTTP 和厂商品牌是接入方式，不作为一级分类。","names":["hook-protocol","hooks-claude-code","hooks-codex","webhook","webhook-github"]},
+  {"id":"human-questions","category":"features","zh":"提问与评审","en":"Questions and review","reason":"收集用户答案或计划评审，不承担权限授予；审批许可另归安全与权限。","names":["user-questions","tool-ask-user"]},
+  {"id":"history-tools","category":"features","zh":"历史检索工具","en":"History tools","reason":"向模型提供会话历史检索；底层历史数据与查询服务仍由数据与会话组件拥有。","names":["tool-session-query","tool-working-directory"]},
+  {"id":"dynamic-development","category":"features","zh":"动态插件开发","en":"Dynamic plugin development","reason":"提供动态插件开发与检查能力；现有开发专用归属保留，不开启生产自修改。","names":["cordis-client-runner","cordis-host-runner","tool-cordis"]},
+  {"id":"experimental-features","category":"features","zh":"实验与示例功能","en":"Experimental features","reason":"可确定协作或领域示例职责，但实验和示例仍在技术目录，不表示正式产品采用。","names":["experimental-agent-team","experimental-agent-team-profile","experimental-tool-agent-team","example-contract-review","scenario-starter"]},
+  {"id":"session-lifecycle","category":"data","zh":"会话记录与恢复","en":"Sessions and recovery","reason":"拥有会话日志、恢复和持久化检查点；浏览器会话状态桥接另归对话功能。","names":["session","session-checkpoint-policy","session-persistence","session-persistence-jsonl","api-session-controller","working-directory"]},
+  {"id":"session-projections","category":"data","zh":"会话投影与统计","en":"Session projections","reason":"从日志派生状态、计数和时间线；浏览器执行轨迹另归对话功能。","names":["session-projection","session-projection-cache","session-stats","session-turn-outline"]},
+  {"id":"history-query","category":"data","zh":"历史查询与导出","en":"History and export","reason":"提供历史读取、搜索索引和导出；不按底层 SQLite 或 ZIP 协议划分产品功能。","names":["session-query","session-query-sqlite","session-log-export"]},
+  {"id":"workspace-data","category":"data","zh":"工作区与目录选择","en":"Workspaces","reason":"拥有工作区记录、目录选择协议及宿主后端；浏览器导航与选择界面另归工作区功能。","names":["workspace","api-workspace-controller","host-directory-picker","host-directory-picker-auto","host-directory-picker-browse","host-directory-picker-native"]},
+  {"id":"storage-backends","category":"data","zh":"存储服务","en":"Storage","reason":"提供领域数据和持久化后端；JSON、SQLite 是实现选择，不代表多个独立业务功能。","names":["storage","storage-domain","storage-json","storage-sqlite"]},
+  {"id":"attachments","category":"data","zh":"附件与大结果存储","en":"Attachments and large results","reason":"保存图片附件或大文本并提供取回能力；不把存储后端当作模型读写工具。","names":["attachment","attachment-local","spill","spill-local"]},
+  {"id":"session-title","category":"data","zh":"会话标题","en":"Session titles","reason":"维护会话标题及其生成策略；使用模型不改变其会话元数据职责。","names":["session-title","session-title-all-prompts-llm","session-title-first-prompt-llm","session-title-llm"]},
+  {"id":"feedback-telemetry","category":"data","zh":"反馈与遥测","en":"Feedback and telemetry","reason":"记录反馈或提供日志上报能力；归类不授权上传，也不改变正式入口禁用遥测的配置。","names":["message-feedback","command-feedback","session-telemetry","session-telemetry-otel","session-log-deepseek","anonymous-user-id"]},
+  {"id":"settings-data","category":"data","zh":"设置数据","en":"Settings data","reason":"拥有设置文档、读写及远程访问；浏览器设置同步归 UI 基础运行，凭据解析仍归安全。","names":["settings","settings-file","api-settings-controller"]},
+  {"id":"data-support","category":"data","zh":"数据辅助与回放测试","en":"Data support","reason":"提供原子写入、数据路径或回放测试；普通库与测试组件不展示为可安装插件。","names":["atomic-write","home-paths","util-workspace-path","session-snapshot"]},
+  {"id":"credentials","category":"security","zh":"凭据与授权","en":"Credentials and authorization","reason":"解析秘密引用并获取授权，不在分类数据中保存凭据值。","names":["credentials","credentials-local","deepseek-account","authorization"]},
+  {"id":"approval-permissions","category":"security","zh":"审批与权限","en":"Approval and permissions","reason":"拥有动作许可、权限预设与工具执行前检查；浏览器审批及权限选择另归对话功能。","names":["user-approval","permission-presets","experimental-auto-review"]},
+  {"id":"sandbox-security","category":"security","zh":"隔离与访问限制","en":"Isolation and access","reason":"实现或解析进程与文件访问限制；原生平台载体保留技术类型，不作为普通扩展安装项。","names":["sandbox","sandbox-local","sandbox-policy","sandbox-windows-acl","node-addon-landlock-run","node-addon-landlock-run-linux-arm64","node-addon-landlock-run-linux-x64","fs-observation-policy"]},
+  {"id":"execution-limits","category":"security","zh":"执行约束","en":"Execution limits","reason":"约束工具执行时间；超时不等于授权机制，也不保证不配合取消的操作可被强制终止。","names":["tool-call-timeout-policy"]},
+  {"id":"account-governance","category":"security","zh":"账户与治理","en":"Account governance","reason":"管理账户、角色、浏览器认证及审计；控制面库不因为被分类而成为可启停插件。","names":["control-plane-core"]},
+  {"id":"human-commands","category":"features","zh":"人类命令注册","en":"Human command registration","reason":"定义人类命令注册和执行接口；浏览器命令选择另归对话功能。","names":["commands"]},
+  {"id":"client-support","category":"kernel","zh":"客户端状态与测试","en":"Client state and testing","reason":"提供非 UI 的共享状态和客户端测试支撑；普通库与测试组件保持技术目录归属。","names":["client-store","client-test-runtime"]},
+  {"id":"enterprise-resources","category":"data","zh":"企业资源数据","en":"Enterprise resource data","reason":"拥有知识导入、数据连接和资源授权；不持有 Agent Loop 或替代身份核心。","names":["control-plane-resources"]},
+  {"id":"enterprise-resource-tools","category":"features","zh":"企业资源工具","en":"Enterprise resource tools","reason":"向模型贡献企业资源操作，依赖公开客户端服务而不导入控制面存储。","names":["tool-enterprise-resources"]},
+  {"id":"administration-settings","category":"data","zh":"管理配置协议与组合","en":"Administration settings","reason":"公开配置贡献协议并组合已批准的能力配置；具体字段仍归能力所有者。","names":["admin-setting-contract","admin-settings"]},
+  {"id":"ui-components","category":"ui","zh":"公共组件","en":"Shared components","reason":"按钮、输入框、菜单、图标与主题标记等可复用展示，不装配运行服务。","names":["ui-components"]},
+  {"id":"ui-platform","category":"ui","zh":"界面公共运行","en":"UI runtime","reason":"槽位渲染、会话绑定、设置同步、主题、语言及 Web 启动；不包含功能页面。","names":["ui-platform"]},
+  {"id":"ui-shell","category":"ui","zh":"应用框架","en":"Application shell","reason":"整体布局、主侧栏、导航入口与品牌内容，由功能通过槽位扩展。","names":["ui-shell"]},
+  {"id":"ui-admin","category":"ui","zh":"管理后台","en":"Administration","reason":"账户、角色、模型、插件目录与运行配置等管理页面，写操作由服务端授权。","names":["ui-admin"]},
+  {"id":"ui-settings","category":"ui","zh":"设置","en":"Settings","reason":"偏好、新会话默认权限与预设管理；当前会话选择留在对话。","names":["ui-settings"]},
+  {"id":"ui-conversation","category":"ui","zh":"对话","en":"Conversation","reason":"消息、输入区、当前会话选择、审批、任务及工具结果呈现。","names":["ui-conversation","ui-mobile"]},
+  {"id":"ui-workspace","category":"ui","zh":"项目与会话管理","en":"Projects and sessions","reason":"项目和会话导航、创建与归档，以及按宿主能力选择的目录交互。","names":["ui-workspace"]},
+  {"id":"ui-resources","category":"ui","zh":"后台资源管理","en":"Resource administration","reason":"管理后台通过槽位提供知识库与数据连接管理，不提供独立成员门户。","names":["ui-resources"]},
+  {"id":"ui-records","category":"ui","zh":"运行记录","en":"Execution records","reason":"请求轨迹、运行记录与会话日志下载，数据来自既有持久记录。","names":["ui-records"]},
+  {"id":"ui-extension-results","category":"ui","zh":"扩展结果展示","en":"Extension results","reason":"扩展面板数据协议与安全结果展示；不启动或执行业务插件。","names":["ui-extension-results"]},
+  {"id":"ui-developer","category":"ui","zh":"开发调试","en":"Developer tools","reason":"Cordis 开发诊断及调试展示，不因目录存在开放生产修改权限。","names":["ui-developer"]},
+  {"id":"system-platform-runtime","category":"kernel","zh":"系统载体与结构","en":"System runtime","names":["node-addon-system-linux-x64","node-addon-system-linux-arm64","node-addon-system","node-addon-system-darwin-x64","node-addon-system-darwin-arm64","chunked-list"],"reason":"按现有源码职责补齐目录登记；技术库不开放独立插件启停。"},
+  {"id":"session-format-migration","category":"data","zh":"会话格式迁移","en":"Session migrations","names":["session-format-v3-to-v4","session-format-v2-to-v3","session-format-v1-to-v2","session-format-v0-to-v1","session-format-catalog","session-format"],"reason":"按现有源码职责补齐目录登记；技术库不开放独立插件启停。"},
+  {"id":"file-delivery-interfaces","category":"services","zh":"资源传输与交付","en":"Resource delivery","names":["remote-mock","client-resources","client-file-upload","tool-present","api-workspace-files"],"reason":"按现有源码职责补齐目录登记；技术库不开放独立插件启停。"},
+  {"id":"enterprise-knowledge","category":"features","zh":"企业知识检索","en":"Enterprise knowledge","reason":"独立检索适配器和指导技能；资料授权、原件和有效版本由 OS 管理，算法在独立 RAG 服务中运行。","names":["enterprise-knowledge"]},
+  {"id":"after-sales-service","category":"features","zh":"售后服务场景","en":"After-sales service scenario","reason":"BEELLIX 售后服务完整业务场景，独立字段、包内专业规则、来源复核与交付，复用既有 Harness 和公开 SDK；工程身份不代表企业已采用。","names":["after-sales-service"]},
+  {"id":"contract-management","category":"features","zh":"合同管理场景","en":"Contract management scenario","reason":"BEELLIX 合同管理完整业务场景，独立字段、包内专业规则、来源复核与交付，复用既有 Harness 和公开 SDK；工程身份不代表企业已采用。","names":["contract-management"]},
+  {"id":"employee-onboarding","category":"features","zh":"入职培训场景","en":"Employee onboarding and training scenario","reason":"BEELLIX 入职培训完整业务场景，独立字段、包内专业规则、来源复核与交付，复用既有 Harness 和公开 SDK；工程身份不代表企业已采用。","names":["employee-onboarding"]},
+  {"id":"engineering-change","category":"features","zh":"工程变更场景","en":"Engineering change scenario","reason":"BEELLIX 工程变更完整业务场景，独立字段、包内专业规则、来源复核与交付，复用既有 Harness 和公开 SDK；工程身份不代表企业已采用。","names":["engineering-change"]},
+  {"id":"equipment-maintenance","category":"features","zh":"设备维护场景","en":"Equipment maintenance scenario","reason":"BEELLIX 设备维护完整业务场景，独立字段、包内专业规则、来源复核与交付，复用既有 Harness 和公开 SDK；工程身份不代表企业已采用。","names":["equipment-maintenance"]},
+  {"id":"expense-review","category":"features","zh":"报销审核场景","en":"Expense review scenario","reason":"BEELLIX 报销审核完整业务场景，独立字段、包内专业规则、来源复核与交付，复用既有 Harness 和公开 SDK；工程身份不代表企业已采用。","names":["expense-review"]},
+  {"id":"inventory-replenishment","category":"features","zh":"库存补货场景","en":"Inventory replenishment scenario","reason":"BEELLIX 库存补货完整业务场景，独立字段、包内专业规则、来源复核与交付，复用既有 Harness 和公开 SDK；工程身份不代表企业已采用。","names":["inventory-replenishment"]},
+  {"id":"project-acceptance","category":"features","zh":"项目验收场景","en":"Project acceptance scenario","reason":"BEELLIX 项目验收完整业务场景，独立字段、包内专业规则、来源复核与交付，复用既有 Harness 和公开 SDK；工程身份不代表企业已采用。","names":["project-acceptance"]},
+  {"id":"project-cost-review","category":"features","zh":"成本复盘场景","en":"Project cost review scenario","reason":"BEELLIX 成本复盘完整业务场景，独立字段、包内专业规则、来源复核与交付，复用既有 Harness 和公开 SDK；工程身份不代表企业已采用。","names":["project-cost-review"]},
+  {"id":"purchase-comparison","category":"features","zh":"采购比价场景","en":"Purchase comparison scenario","reason":"BEELLIX 采购比价完整业务场景，独立字段、包内专业规则、来源复核与交付，复用既有 Harness 和公开 SDK；工程身份不代表企业已采用。","names":["purchase-comparison"]},
+  {"id":"purchase-followup","category":"features","zh":"采购跟单场景","en":"Purchase order follow-up scenario","reason":"BEELLIX 采购跟单完整业务场景，独立字段、包内专业规则、来源复核与交付，复用既有 Harness 和公开 SDK；工程身份不代表企业已采用。","names":["purchase-followup"]},
+  {"id":"quality-correction","category":"features","zh":"质量整改场景","en":"Quality correction scenario","reason":"BEELLIX 质量整改完整业务场景，独立字段、包内专业规则、来源复核与交付，复用既有 Harness 和公开 SDK；工程身份不代表企业已采用。","names":["quality-correction"]},
+  {"id":"receivables-collection","category":"features","zh":"应收回款场景","en":"Receivables collection scenario","reason":"BEELLIX 应收回款完整业务场景，独立字段、包内专业规则、来源复核与交付，复用既有 Harness 和公开 SDK；工程身份不代表企业已采用。","names":["receivables-collection"]},
+  {"id":"recruitment-assessment","category":"features","zh":"招聘评估场景","en":"Recruitment assessment scenario","reason":"BEELLIX 招聘评估完整业务场景，独立字段、包内专业规则、来源复核与交付，复用既有 Harness 和公开 SDK；工程身份不代表企业已采用。","names":["recruitment-assessment"]},
+  {"id":"sales-opportunity","category":"features","zh":"商机跟进场景","en":"Sales opportunity follow-up scenario","reason":"BEELLIX 商机跟进完整业务场景，独立字段、包内专业规则、来源复核与交付，复用既有 Harness 和公开 SDK；工程身份不代表企业已采用。","names":["sales-opportunity"]},
+  {"id":"sales-order-review","category":"features","zh":"订单审核场景","en":"Sales order review scenario","reason":"BEELLIX 订单审核完整业务场景，独立字段、包内专业规则、来源复核与交付，复用既有 Harness 和公开 SDK；工程身份不代表企业已采用。","names":["sales-order-review"]},
+  {"id":"tender-response","category":"features","zh":"投标响应场景","en":"Tender response scenario","reason":"BEELLIX 投标响应完整业务场景，独立字段、包内专业规则、来源复核与交付，复用既有 Harness 和公开 SDK；工程身份不代表企业已采用。","names":["tender-response"]},
+  {"id":"three-way-match","category":"features","zh":"三单匹配场景","en":"Three-way matching scenario","reason":"BEELLIX 三单匹配完整业务场景，独立字段、包内专业规则、来源复核与交付，复用既有 Harness 和公开 SDK；工程身份不代表企业已采用。","names":["three-way-match"]},
+  {"id":"smart-quotation","category":"features","zh":"智能报价场景","en":"Smart quotation","reason":"独立业务制品提供清单报价工具与指导技能，由 Harness 调用；不内置企业数据。","names":["smart-quotation"]},
+  {id:'office-capabilities',category:'features',zh:'Office 独立能力',en:'Office capabilities',reason:'完整插件随包交付文档、表格、演示工具和技能，保留原本机工具协议；不另建执行循环。',names:['office-capabilities']},
+  {id:'meeting-minutes',category:'features',zh:'会议纪要场景',en:'Meeting minutes',reason:'独立业务制品提供实时转写、人物确认和纪要工具，附带企业语音运行依赖；复用用户 Harness、执行目标和产物归档，不新增会议数据库。',names:['meeting-minutes']},
+] as const satisfies readonly CapabilityAuditGroup[]
+
+/** 分类下的职责分组标识。 */
+export type CapabilityTopic = (typeof capabilityAuditGroups)[number]['id']

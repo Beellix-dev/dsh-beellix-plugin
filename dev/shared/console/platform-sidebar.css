@@ -1,0 +1,19 @@
+.beellix-platform-sidebar { height: 100%; box-sizing: border-box; display: flex; flex-direction: column; padding: 24px 14px 16px; color: var(--dsw-alias-label-primary, CanvasText); background: var(--dsw-specific-sidebar-fill, Canvas); font: inherit; }
+.beellix-platform-sidebar * { box-sizing: border-box; }
+.beellix-platform-sidebar button { display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 10px 12px; color: inherit; background: transparent; border: 0; border-radius: 8px; font: inherit; font-size: 14px; text-align: left; cursor: pointer; }
+.beellix-platform-sidebar button svg { flex: none; }
+.beellix-platform-sidebar button:hover { background: var(--dsw-alias-interactive-bg-hover, ButtonFace); }
+.beellix-platform-sidebar button:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+.beellix-platform-sidebar__header { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 40px; margin: 0 4px 28px; }
+.beellix-platform-sidebar__brand { display: flex; align-items: center; gap: 8px; white-space: nowrap; font-size: 16px; }
+.beellix-platform-sidebar .beellix-platform-sidebar__toggle { min-height: 28px; width: 28px; padding: 5px; }
+.beellix-platform__nav { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.beellix-platform__nav button { width: 100%; }
+.beellix-platform__nav button[aria-current], .beellix-platform__nav button:hover { background: var(--dsw-alias-interactive-bg-hover, ButtonFace); }
+.beellix-platform-sidebar .beellix-platform-sidebar__back { margin-top: 24px; width: 100%; }
+.beellix-platform-sidebar[data-collapsed="true"] { padding: 16px 6px; }
+.beellix-platform-sidebar[data-collapsed="true"] .beellix-platform-sidebar__header { margin: 0 0 20px; justify-content: center; }
+.beellix-platform-sidebar[data-collapsed="true"] button { justify-content: center; padding: 10px 8px; }
+[data-windows-titlebar] .beellix-platform-sidebar__toggle { position: fixed; z-index: 100; top: calc((var(--dsh-windows-titlebar-height, 40px) - 28px) / 2); left: 12px; -webkit-app-region: no-drag; }
+[data-windows-titlebar] .beellix-platform-sidebar[data-collapsed="true"] { padding: 0; }
+[data-windows-titlebar] .beellix-platform-sidebar[data-collapsed="true"] > :not(.beellix-platform-sidebar__header), [data-windows-titlebar] .beellix-platform-sidebar[data-collapsed="true"] .beellix-platform-sidebar__brand { display: none; }

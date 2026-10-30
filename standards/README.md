@@ -1,0 +1,16 @@
+# 开发标准
+
+- [business-modules.md](business-modules.md)
+- [capability-sdk.md](capability-sdk.md)
+- [conversation-knowledge-contract.md](conversation-knowledge-contract.md)
+- [creation-project-contract.md](creation-project-contract.md)
+- [cross-plugin-integration.md](cross-plugin-integration.md)
+- [database-plugin-sdk.md](database-plugin-sdk.md)
+- [ecosystem-conformance.md](ecosystem-conformance.md)
+- [managed-package-loading.md](managed-package-loading.md)
+- [model-center.md](model-center.md)
+- [plugin-contract.md](plugin-contract.md)
+- [plugin-development-standard.md](plugin-development-standard.md)
+- [plugin-development-task.md](plugin-development-task.md)
+- [plugin-standard-evolution.md](plugin-standard-evolution.md)
+- [public-plugin-distribution.md](public-plugin-distribution.md)

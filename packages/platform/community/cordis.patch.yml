@@ -1,0 +1,3 @@
+- insert:
+    - id: beellix-ui-bootstrap
+      name: '@beellix-ai/dsh-beellix-plugin'

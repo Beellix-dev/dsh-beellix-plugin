@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "standardVersion": "1.1.0",
+  "projectId": "2f9b9c50-a2c9-44af-918e-46cc60d73c40",
+  "plugin": {
+    "id": "inventory",
+    "name": "@beellix-ai/inventory",
+    "title": "库存管理",
+    "type": "scene"
+  },
+  "template": {
+    "id": "scene-postgres",
+    "version": "1.0.0"
+  },
+  "ecosystem": [
+    {
+      "id": "database",
+      "provider": "@beellix-ai/database",
+      "required": true,
+      "contract": {
+        "min": 1,
+        "max": 1
+      },
+      "features": []
+    },
+    {
+      "id": "knowledge",
+      "provider": "@beellix-ai/knowledge",
+      "required": false,
+      "contract": {
+        "min": 1,
+        "max": 1
+      },
+      "features": []
+    }
+  ],
+  "storage": {
+    "kind": "postgres",
+    "schemaVersion": 1,
+    "migrations": "migrations"
+  },
+  "initialization": {
+    "strategy": "on-first-use"
+  },
+  "access": [
+    {
+      "resource": "service:database",
+      "mode": "read-write",
+      "purpose": "访问当前场景明确绑定的库存账套，执行有界业务操作"
+    },
+    {
+      "resource": "service:knowledge",
+      "mode": "read",
+      "purpose": "用户开启且授权空间后检索产品资料；缺失时停用知识功能"
+    }
+  ]
+}

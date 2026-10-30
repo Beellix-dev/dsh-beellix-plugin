@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "status": "design-only",
+  "source": "docs/ecosystem-model.md",
+  "operatingModel": "co-creation-first",
+  "standardVersion": "1.1.0",
+  "ownedPluginVersion": "0.1.1",
+  "roles": ["requester", "creator", "maintainer", "reviewer", "publisher", "billing", "mediator"],
+  "records": [
+    {"id":"demand","owner":"requester","purpose":"公开问题或私有定制输入","privateByDefault":["attachments","businessData"]},
+    {"id":"proposal","owner":"creator","purpose":"方案、报价、周期和风险","privateByDefault":["price","technicalPlan"]},
+    {"id":"engagement","owner":"requester+creator","purpose":"双方同一修订的范围、交付、权属及费用安排"},
+    {"id":"milestone","owner":"requester+creator","purpose":"阶段产出、期限及验收依据"},
+    {"id":"delivery","owner":"creator","purpose":"固定源码、最终包摘要及证据"},
+    {"id":"acceptance","owner":"requester","purpose":"按协议判断业务交付，不自动发包或付款"},
+    {"id":"release","owner":"publisher","purpose":"经独立审核后供下载的固定发行"},
+    {"id":"allocation","owner":"billing","purpose":"按明确规则记录平台及作者收益，不等同付款"},
+    {"id":"payout","owner":"billing","purpose":"实际渠道付款与对账，不以交付状态推断"},
+    {"id":"dispute","owner":"mediator","purpose":"取消、返修、权属及财务争议的独立协调"}
+  ],
+  "flows": [
+    {"id":"engagement","states":["draft","confirmed","active","delivered","accepted","closed","cancelled","disputed"],"initial":"draft","terminal":["closed","cancelled"],"transitions":[["draft","confirmed"],["draft","cancelled"],["confirmed","active"],["confirmed","cancelled"],["active","delivered"],["active","disputed"],["delivered","active"],["delivered","accepted"],["delivered","disputed"],["accepted","closed"],["accepted","disputed"],["disputed","active"],["disputed","accepted"],["disputed","cancelled"]]},
+    {"id":"delivery","states":["submitted","changes-requested","accepted","superseded"],"initial":"submitted","terminal":["accepted","superseded"],"transitions":[["submitted","changes-requested"],["submitted","accepted"],["submitted","superseded"],["changes-requested","superseded"]]},
+    {"id":"payout","states":["unconfigured","pending","processing","paid","failed","disputed"],"initial":"unconfigured","terminal":["paid"],"transitions":[["unconfigured","pending"],["pending","processing"],["pending","disputed"],["processing","paid"],["processing","failed"],["failed","pending"],["disputed","pending"]]}
+  ],
+  "policies": {
+    "paidMembershipRequiredForParticipation":false,
+    "proposalSelectionStartsWork":false,
+    "bothPartiesConfirmSameRevision":true,
+    "changedScopeRequiresNewConfirmation":true,
+    "customerAcceptancePublishesRelease":false,
+    "customerAcceptanceMarksPayoutPaid":false,
+    "privateResultsPublishedByDefault":false,
+    "creatorAndPublisherAreDistinct":true,
+    "companyProfitRequiredForCreatorShare":false,
+    "automaticSettlementEnabled":false,
+    "financialPolicyStatus":"unconfigured",
+    "platformFeeRate":null,
+    "settlementDays":null,
+    "paymentProvider":null,
+    "allowedDeductionBasis":"explicit-agreed-line-items",
+    "creatorPoolRule":"net-receipts-minus-agreed-platform-fee",
+    "financialTruth":"verified-payment-and-refund-events",
+    "sourceAcceptanceDoesNotGrantLocalRuntimePermission":true,
+    "technicalReleaseGates":["G0","G1","G2","G3","G4"]
+  },
+  "stages": [
+    {"id":"community","status":"planned","requires":[],"acceptance":["EC01","EC02","EC03","EC04"]},
+    {"id":"co-creation","status":"planned","requires":["community"],"acceptance":["EC05","EC06","EC07","EC08"]},
+    {"id":"revenue","status":"planned","requires":["co-creation"],"acceptance":["EC09","EC10","EC11"]},
+    {"id":"organizations","status":"planned","requires":["co-creation"],"acceptance":["EC12"]}
+  ],
+  "acceptance": [
+    {"id":"EC01","case":"无付费会员也能参与需求与获取免费资源，不伪造安装事实","evidence":null},
+    {"id":"EC02","case":"外部作者从公开说明完成工具及场景的构建、最终包安装和卸载保留","evidence":null},
+    {"id":"EC03","case":"DSH创造模式与维护者读取同一按需标准快照，不加载全生态正文","evidence":null},
+    {"id":"EC04","case":"代码包与资料归档区别审查，安全或兼容缺失时不可公开自动安装","evidence":null},
+    {"id":"EC05","case":"报价和私有附件隔离，其他竞作者不能读取或修改","evidence":null},
+    {"id":"EC06","case":"选中提案不自动开工，双方确认同一范围修订；变更重新确认","evidence":null},
+    {"id":"EC07","case":"返修绑定新交付摘要，验收不自动发行或付款；取消争议保留证据","evidence":null},
+    {"id":"EC08","case":"客户专用成果不默认公开，通用复用和多人贡献权益分别确认","evidence":null},
+    {"id":"EC09","case":"费率和渠道未定时不托管或自动分账，测试订单不变成实际收入","evidence":null},
+    {"id":"EC10","case":"实收、退款、约定扣项、平台费与作者应付可核对；重复事件不重复结算","evidence":null},
+    {"id":"EC11","case":"多人分配和舍入总额一致，付款失败可恢复，争议和退款形成调整而非删除旧账","evidence":null},
+    {"id":"EC12","case":"组织成员退出、权限收回、共享与恢复在真实部署验收，本机owner不冒充多人权限","evidence":null}
+  ],
+  "unresolved":["fee-rates","settlement-cycle","payment-and-payout-provider","rights-agreement","dispute-rules","public-third-party-sdk-and-namespace","team-service-delivery"],
+  "implementationEvidence":null
+}

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "namespace": "@beellix-ai",
+  "categories": {
+    "platform": "主中台",
+    "foundation": "基础插件",
+    "tools": "工具插件",
+    "scenes": "场景插件"
+  },
+  "packages": [
+    {
+      "id": "dsh-ui",
+      "group": "platform",
+      "directory": "packages/platform/community",
+      "name": "@beellix-ai/dsh-beellix-plugin",
+      "version": "0.1.1"
+    }
+  ]
+}

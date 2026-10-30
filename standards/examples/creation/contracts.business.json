@@ -1,0 +1,14 @@
+{
+ "schemaVersion":1,
+ "moduleId":"contracts",
+ "deployment":"local-owner",
+ "dataFeatures":["validated-input","record-references"],
+ "engine":{"kind":"native"},
+ "resources":[{"id":"contracts.business","actions":["read","write"],"review":"native","idempotency":true,"entities":[{"entity":"contracts","idType":"string"}]}],
+ "references":[
+  {"resource":"sales-crm.business","entity":"customers","provider":"@beellix-ai/sales-crm","required":false},
+  {"resource":"inventory.business","entity":"sales","provider":"@beellix-ai/inventory","required":false},
+  {"resource":"inventory.business","entity":"invoices","provider":"@beellix-ai/inventory","required":false}
+ ],
+ "verification":["input-validation","reviewed-write","idempotency","backup-restore","cancel-disable","record-reference","native-load","package-acceptance"]
+}

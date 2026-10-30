@@ -1,0 +1,35 @@
+/* 后台跨页面操作统一为原生链接按钮；不影响目录、页签和正文链接。 */
+:is(a,button).link.link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 6px 12px;
+  border: 0.5px solid var(--dsw-alias-border-l2);
+  border-radius: 8px;
+  background: var(--dsw-alias-bg-layer-3);
+  color: var(--dsw-alias-label-primary);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+  text-align: center;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+  vertical-align: middle;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+:is(a,button).link.link:hover {
+  background: var(--dsw-alias-interactive-bg-hover);
+  border-color: var(--dsw-alias-label-tertiary);
+  text-decoration: none;
+}
+:is(a,button).link.link:active { background: var(--dsw-alias-interactive-bg-hover); }
+:is(a,button).link.link:focus-visible {
+  outline: 2px solid var(--dsw-alias-brand-primary);
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  :is(a,button).link.link { transition: none; }
+}

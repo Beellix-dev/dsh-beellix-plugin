@@ -1,0 +1,97 @@
+[data-beellix-scene-head]{min-width:0;color:var(--dsw-alias-label-primary,CanvasText);font-family:inherit;font-size:13px}
+.beellix-scene-heading{display:flex;align-items:center;justify-content:space-between;gap:6px;min-width:0}
+.beellix-scene-switch{display:inline-flex;align-items:center;gap:2px;padding:2px;background:var(--dsw-alias-bg-module-platform,ButtonFace);border-radius:8px}
+.beellix-scene-switch button{height:26px;padding:0 9px;border:0;border-radius:6px;color:var(--dsw-alias-label-secondary,GrayText);background:transparent;font:inherit;white-space:nowrap;cursor:pointer}
+.beellix-scene-switch button[aria-pressed=true]{color:var(--dsw-alias-label-primary,CanvasText);background:var(--dsw-alias-bg-base,Canvas);font-weight:550}
+.beellix-scenes-body{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin}
+.beellix-scenes-body[hidden]{display:none!important}
+.beellix-scenes{color:var(--dsw-alias-label-primary,CanvasText);font:inherit;font-size:13px;padding:0 0 16px}
+.beellix-scenes button,.beellix-scene-icon{font:inherit;color:inherit;cursor:pointer;border:0;background:transparent;border-radius:6px}
+.beellix-scenes button:disabled{cursor:default;opacity:.5}
+.beellix-scene-icon{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;padding:0;flex:none}
+.beellix-scenes button:hover,.beellix-scene-icon:hover{background:var(--dsw-alias-interactive-bg-hover,ButtonFace)}
+.beellix-scenes button:focus-visible,.beellix-scene-heading button:focus-visible{outline:2px solid var(--dsw-focus-ring-color,Highlight);outline-offset:-2px}
+.beellix-scene-heading svg,.beellix-scenes svg{flex:none}
+.beellix-scene-folder{display:flex;align-items:center;gap:6px;box-sizing:border-box;height:34px;min-width:0;margin:0;padding:0 8px;border-radius:var(--dsw-radius-md,8px);background:transparent}
+.beellix-scene-group+.beellix-scene-group{margin-top:4px}
+.beellix-scene-folder>button[role=treeitem]{display:flex;align-items:center;gap:6px;height:34px;min-width:0;flex:1;padding:0;text-align:left;font-size:14px;line-height:20px;font-weight:400;color:var(--dsw-alias-label-primary,CanvasText)}
+.beellix-scene-folder>button[role=treeitem]:hover{background:transparent}
+.beellix-scene-folder>button>span:not(.beellix-scene-chevron){overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.beellix-scene-folder>button[role=treeitem]>span:not(.beellix-scene-chevron){color:var(--dsw-alias-state-business-primary,Highlight)}
+.beellix-scene-folder small{font-size:11px;color:var(--dsw-alias-label-secondary,GrayText);white-space:nowrap;margin-left:auto}
+.beellix-scene-chevron{display:inline-flex;align-items:center;justify-content:center;width:16px;height:20px;flex:none;color:var(--dsw-alias-label-caption,GrayText);transform:rotate(0);transition:transform 150ms var(--ds-ease-in-out,ease-out)}
+.beellix-scene-chevron[data-expanded=true]{transform:rotate(90deg)}
+.beellix-scene-conversations{display:flex;flex-direction:column;gap:2px;margin:2px 0 0}
+.beellix-scene-conversations button[role=treeitem]{display:flex;align-items:center;gap:0;height:32px;min-width:0;padding:0;text-align:left;font-size:14px;line-height:20px}
+.beellix-scene-conversations button[role=treeitem]:hover{background:transparent}
+.beellix-scene-session-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;margin:0 6px 0 4px}
+.beellix-scene-session-leading{display:inline-flex;align-items:center;justify-content:center;flex:none;width:16px;height:20px;color:var(--dsw-alias-label-tertiary,GrayText)}
+.beellix-scene-row-actions{display:none;align-items:center;gap:15px;flex:none;height:20px}
+.beellix-scene-folder:hover .beellix-scene-row-actions,.beellix-scene-folder:focus-within .beellix-scene-row-actions,.beellix-scene-folder[data-menu-open=true] .beellix-scene-row-actions{display:inline-flex}
+.beellix-scene-folder:hover,.beellix-scene-folder[data-menu-open=true]{background:var(--dsw-alias-interactive-bg-hover,ButtonFace)}
+.beellix-scenes .beellix-scene-row-icon{display:inline-flex;align-items:center;justify-content:center;flex:none;width:16px;height:16px;padding:0;border:0;border-radius:var(--dsw-radius-xs,4px);color:var(--dsw-alias-label-tertiary,GrayText);background:transparent}
+.beellix-scenes .beellix-scene-row-icon:hover{color:var(--dsw-alias-label-primary,CanvasText);background:transparent}
+.beellix-scene-new{color:var(--dsw-alias-label-secondary,GrayText)!important}
+.beellix-scene-running{width:6px;height:6px;border-radius:50%;background:var(--dsw-alias-state-business-primary,Highlight);flex:none}
+.beellix-scene-empty{padding:30px 8px;text-align:center;color:var(--dsw-alias-label-secondary,GrayText)}
+.beellix-scene-empty>svg{opacity:.7}.beellix-scene-empty p{line-height:1.6;margin:12px 0}.beellix-scene-empty button{padding:7px 10px;color:var(--dsw-alias-label-primary,CanvasText)}
+.beellix-scene-picker{padding:8px;margin:4px 0 8px;border:1px solid var(--dsw-alias-border-l2,GrayText);border-radius:10px;background:var(--dsw-alias-bg-base,Canvas)}
+.beellix-scene-picker>header{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:5px}.beellix-scene-picker strong{font-weight:550}.beellix-scene-picker p{line-height:1.6;margin:8px 3px;color:var(--dsw-alias-label-secondary,GrayText)}
+.beellix-scene-choice{display:flex;align-items:center;gap:8px;width:100%;padding:8px 4px;text-align:left}.beellix-scene-choice>span{flex:1;min-width:0}.beellix-scene-choice small{display:block;font-size:11px;color:var(--dsw-alias-label-secondary,GrayText);margin-top:3px}.beellix-scene-text{padding:7px 4px;font-size:12px!important}
+.beellix-scene-error{padding:8px;border:1px solid var(--dsw-alias-border-l2,GrayText);border-radius:8px;margin-bottom:8px}.beellix-scene-error p{margin:0 0 6px;line-height:1.6;overflow-wrap:anywhere}.beellix-scene-error button{padding:4px 7px}.beellix-scene-hint{padding:6px;color:var(--dsw-alias-label-secondary,GrayText)}
+@media(prefers-reduced-motion:reduce){.beellix-scene-chevron{transition:none}}
+/* 原生公开品牌槽没有标题槽；仅在自有场景品牌存在时收起相邻默认标题。 */
+span:has(> [data-slot="conversation.hero.brand.mark"] .beellix-scene-brand)+span{display:none!important}
+span:has(> [data-slot="conversation.hero.brand.mark"] .beellix-scene-brand){min-width:0;max-width:100%}
+.beellix-scene-brand{display:inline-flex;align-items:center;gap:12px;min-width:0;max-width:100%;color:var(--dsw-alias-label-primary,CanvasText);font-family:inherit}
+.beellix-scene-brand-name{display:inline-flex;align-items:center;gap:9px;flex:none;font-size:24px;line-height:1.3;font-weight:650;letter-spacing:-.025em;white-space:nowrap}
+.beellix-scene-brand-name img{display:block;flex:none;object-fit:contain}
+.beellix-scene-brand-context{display:block;min-width:0;font-size:17px;line-height:1.5;font-weight:500;color:var(--dsw-alias-label-secondary,GrayText);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.beellix-scene-brand-version{flex:none;padding:2px 6px;border:1px solid var(--dsw-alias-border-l2,GrayText);border-radius:5px;font-size:11px;line-height:1.5;font-weight:500;font-variant-numeric:tabular-nums;color:var(--dsw-alias-label-secondary,GrayText);white-space:nowrap}
+/* 模式沿宿主语义色；场景身份不提供会被宿主拒绝的模式切换。 */
+.beellix-mode-control{display:inline-flex;align-items:center;gap:8px}
+.beellix-mode-seat{display:inline-flex;align-items:center;gap:7px;padding:6px 9px;border:0;border-radius:10px;background:transparent;color:var(--dsw-alias-label-primary,CanvasText);font:inherit;cursor:pointer}
+.beellix-mode-seat:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(128,128,128,.1))}
+.beellix-mode-seat:not([aria-haspopup]){cursor:default}
+.beellix-mode-control--header .beellix-mode-seat{gap:4px;height:22px;padding:0 2px 0 0;border-radius:var(--dsw-radius-xs,4px);background:var(--dsw-alias-fill-tsp-secondary,transparent);color:var(--dsw-alias-label-tertiary,GrayText);font-size:12px;line-height:22px;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.beellix-mode-control--header .beellix-mode-seat svg{flex:none;opacity:.7}
+@container(max-width:540px){.beellix-mode-control--header{display:none}}
+.beellix-mode-item{display:flex;flex-direction:column;gap:3px;padding:3px 0}.beellix-mode-item strong{font-weight:500}.beellix-mode-item small{opacity:.65;font-size:12px}
+
+.beellix-compatibility-notice{position:fixed;bottom:16px;right:16px;z-index:1200;max-width:min(420px,calc(100vw - 32px));padding:10px 14px;border:1px solid var(--dsw-alias-border-l2,ButtonBorder);border-radius:10px;background:var(--dsw-alias-bg-base,Canvas);color:var(--dsw-alias-label-primary,CanvasText);font:inherit;font-size:13px;box-shadow:0 4px 20px #0001}
+.beellix-compatibility-notice p{margin:0;line-height:1.6}
+.beellix-scene-session-row{display:flex;align-items:center;box-sizing:border-box;gap:0;height:32px;min-width:0;padding:0 8px;border-radius:var(--dsw-radius-md,8px)}
+.beellix-scene-session-row[data-selected=true],.beellix-scene-session-row:hover,.beellix-scene-session-row:focus-within,.beellix-scene-session-row:has([data-menu-open=true]){background:var(--dsw-alias-interactive-bg-hover,ButtonFace)}
+.beellix-scene-session-row>button[role=treeitem]{min-width:0;flex:1}
+.beellix-scene-session-actions{display:none;align-items:center;gap:15px;flex:none}
+.beellix-scene-session-row:hover .beellix-scene-session-actions,.beellix-scene-session-row:focus-within .beellix-scene-session-actions,.beellix-scene-session-row:has([data-menu-open=true]) .beellix-scene-session-actions{display:inline-flex}
+.beellix-scene-session-actions button{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;padding:0;border-radius:var(--dsw-radius-xs,4px);color:var(--dsw-alias-label-tertiary,GrayText)}
+.beellix-scene-session-actions button:hover{color:var(--dsw-alias-label-primary,CanvasText);background:transparent}
+.beellix-scene-session-menu{display:inline-flex;align-items:center}
+.beellix-scene-selector.beellix-scene-selector{width:min(720px,calc(100vw - 32px));max-width:720px}
+.beellix-scene-selector-content{min-width:0;max-height:65vh;overflow:auto;font:inherit;color:var(--dsw-alias-label-primary,CanvasText)}
+.beellix-scene-selector-content input{box-sizing:border-box;width:100%;min-height:40px;padding:10px 12px;border:1px solid var(--dsw-alias-border-l2,ButtonBorder);border-radius:8px;background:var(--dsw-alias-bg-base,Canvas);color:inherit;font:inherit;outline-offset:2px}
+.beellix-scene-selector-list{display:flex;flex-direction:column;gap:10px;margin:16px 0}
+.beellix-scene-selector-list article{display:flex;align-items:center;gap:12px;min-width:0;padding:16px;border:1px solid var(--dsw-alias-border-l2,ButtonBorder);border-radius:12px}
+.beellix-scene-selector-list article>svg{flex:none}
+.beellix-scene-selector-list article>div{flex:1;min-width:0}
+.beellix-scene-selector-list strong{display:block;font-size:14px;font-weight:600;overflow-wrap:anywhere}
+.beellix-scene-selector-list small{display:block;margin-top:5px;font-size:12px;color:var(--dsw-alias-label-secondary,GrayText)}
+.beellix-scene-selector-content button{min-height:36px;padding:7px 12px;border:1px solid var(--dsw-alias-border-l2,ButtonBorder);border-radius:8px;color:inherit;background:transparent;font:inherit;cursor:pointer;white-space:nowrap}
+.beellix-scene-selector-content button:hover:not(:disabled){background:var(--dsw-alias-interactive-bg-hover,ButtonFace)}
+.beellix-scene-selector-content button:disabled{opacity:.5;cursor:default}
+.beellix-scene-selector-content :is(input,button):focus-visible{outline:2px solid var(--dsw-alias-brand-primary,Highlight);outline-offset:2px}
+.beellix-scene-selector-content footer{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px}
+@media(hover:none){.beellix-scene-session-actions,.beellix-scene-row-actions{display:inline-flex}}
+@media(max-width:480px){.beellix-scene-selector-list article{padding:12px;gap:10px;flex-wrap:wrap}.beellix-scene-selector-content button{font-size:12px}}
+/* DSH picker 的公开 anchorRef：只替换显示，不修改 React 的原生目录文字节点。 */
+button[data-beellix-execution-label]>span{display:none}
+button[data-beellix-execution-label]::after{content:attr(data-beellix-execution-label);order:1;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+button[data-beellix-execution-label]>svg:last-of-type{order:2}
+/* 与左侧场景名共用宿主业务蓝；固定标签不显示原生关闭控件。 */
+.beellix-scene-workbench-title{color:var(--dsw-alias-state-business-primary,Highlight);font-weight:600}
+/* 场景名按内容占宽；放不下时由原生标签条滚动，不挤占后方操作。 */
+[data-dockkit-tab]:has([data-beellix-fixed-tab]){flex:none;width:max-content;max-width:none;justify-content:center}
+/* 固定标签没有关闭钮，激活、悬停、聚焦时也不保留其文字遮罩。 */
+[data-dockkit-tab][role="tab"]:has([data-beellix-fixed-tab])>[data-dockkit-tab-title]:has(.beellix-scene-workbench-title){flex:none;justify-content:center;overflow:visible;mask-image:none;text-align:center}
+[data-dockkit-tab]:has([data-beellix-fixed-tab]) [data-dockkit-tab-close], [data-dockkit-float-grip]:has([data-beellix-fixed-tab]) [data-dockkit-float-close]{display:none}

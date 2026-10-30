@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "standardVersion": "1.1.0",
+  "projectId": "416f7f6e-18c6-41d5-a329-5a345f3903bd",
+  "plugin": {
+    "id": "unit-converter",
+    "name": "@beellix-ai/unit-converter",
+    "title": "单位换算",
+    "type": "tool"
+  },
+  "template": {
+    "id": "tool-pure",
+    "version": "1.0.0"
+  },
+  "ecosystem": [],
+  "storage": {
+    "kind": "none"
+  },
+  "initialization": {
+    "strategy": "none"
+  },
+  "access": []
+}
