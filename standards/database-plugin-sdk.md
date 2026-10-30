@@ -38,7 +38,7 @@ account.transaction(fn) 中的 tx.query(text, values) 沿同一事务连接执�
 
 ## 能力包与工作进程：知识候选扩展
 
-当前源码候选在 contractVersion=1 下用 features 显式声明 capability-registration、worker-connections、backup-barrier、vector-extension；业务包须同时检查这些特性。status() 返回运行状态，安装或装配不代表 ready。此扩展尚未自动采用到日常客户端，采用摘要见 STATUS.md。
+当前源码候选在 contractVersion=1 下用 features 显式声明 capability-registration、worker-connections、backup-barrier、vector-extension；业务包须同时检查这些特性。status() 返回运行状态，安装或装配不代表 ready。此扩展尚未自动采用到日常客户端，采用摘要见 验证说明。
 
 registerCapability 或 registerCapabilityDatabase 只接受中台 environment/node_modules 中身份、真实目录匹配的 resources 能力包（knowledge、data-platform）。其余输入与场景登记类似；数据库身份使用 capability--<id>，不能借场景登记冒用。登记不建库，显式初始化时才 open('main')。知识主实例与业务场景数据库使用独立数据库、角色和附件根。
 

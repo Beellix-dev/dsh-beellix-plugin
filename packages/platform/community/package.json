@@ -17,7 +17,7 @@
     }
   },
   "type": "module",
-  "description": "dsh-BeelliX-plugin：Beelli X 品牌、场景导航与中台入口",
+  "description": "Beelli X 社区中台：DSH 模型配置、插件管理与场景导航",
   "license": "MIT",
   "author": {
     "name": "BEELLIX",

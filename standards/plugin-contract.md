@@ -48,4 +48,4 @@ UI 引导包通过 DSH 的“添加插件”安装到当前 Profile。自有业�
 
 ## 创造模式与后续标准
 
-本文件描述当前已实现的运行包契约。用户确认的 Beelli X 创造模式、用户工程、生态依赖、开发校验及交付流程见创造模式标准 v1。其 beellix.project.json 已接入开发静态检查，不改变当前 beellixContract v1，也不代表通用依赖门禁或业务迁移协调器已经实现。可操作规范见[插件开发标准](plugin-development-standard.md)。
+本文件描述当前已实现的运行包契约。Beelli X 创造模式、用户工程、生态依赖、开发校验及交付流程见工程协议与创造模式验收门禁。其 beellix.project.json 已接入开发静态检查，不改变当前 beellixContract v1，也不代表通用依赖门禁或业务迁移协调器已经实现。可操作规范见[插件开发标准](plugin-development-standard.md)。

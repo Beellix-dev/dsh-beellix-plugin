@@ -1,4 +1,6 @@
-# Third-party icon assets
+# Third-party notices
+
+The native frame and layout adaptation includes MIT-licensed DeepSeek Harness material. Its pinned upstream revision, copyright and full license are recorded in [the DSH source notice](https://github.com/Beellix-dev/dsh-beellix-plugin/blob/main/packages/platform/community/src/native-layout-NOTICE.md), also shipped as lib/native-layout-NOTICE.md. This project is an independent community extension.
 
 The development checker and unified data input validator bundle Ajv 8.20.0 (MIT), fast-deep-equal (MIT), json-schema-traverse (MIT), and fast-uri (BSD-3-Clause). Exact dependency versions and full license texts are shipped in lib/development/THIRD_PARTY_LICENSES.txt. This does not change the licenses of separately installed business packages.
 

@@ -1,7 +1,5 @@
 # Beelli X 创造工程描述协议 v1
 
-日期：2026-10-26。状态：已接入 beellix_develop check 和 development/check.mjs 的开发期静态检查；尚未接入通用生成器、打包器和安装器依赖门禁。不改变现有 beellixContract v1。静态检查不是行为或安全审计，不执行工程代码。
-
 ## 1 格式与效力
 
 工程根新增 beellix.project.json，按 [Schema](schemas/beellix-project-v1.schema.json) 校验。本文定义跨字段语义，Schema 通过不代表这些检查已通过。未知字段拒绝，扩展更新协议。

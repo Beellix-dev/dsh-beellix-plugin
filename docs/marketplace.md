@@ -20,6 +20,11 @@ Windows / Linux 自动检查模板在 `dev/config/community-checks.yml`。当前
 
 本插件选择 `ui` 分类：自身提供导航、配置与运行协调，不是只有依赖清单的聚合包。分类与客观功能说明可随实际能力维护。
 
+条目说明：
+
+- 中文：为 DeepSeek Harness 提供模型配置、自有插件管理和工作区／场景导航的社区中台。
+- English: A community control center for DeepSeek Harness with model configuration, managed plugin lifecycle, and workspace and scene navigation.
+
 **npm 尚未发布，市场尚未批准收录。** 不将本地测试或 GitHub 上传视为上述步骤完成；同名同版本不能覆盖发布。
 
 规则核验日期：2026-10-30。
