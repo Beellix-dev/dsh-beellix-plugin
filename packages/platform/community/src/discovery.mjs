@@ -1,2 +1,2 @@
-/** Public plugin discovery stays on the website; installation stays in the client. */
-export const PLUGIN_DISCOVERY_URL='https://www.beellix.com/plugins'
+/** Maintainer-owned origin for the website's public discovery HTTP contract. */
+export const WEBSITE_CATALOG_ORIGIN='https://www.beellix.com'

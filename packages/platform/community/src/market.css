@@ -38,3 +38,5 @@
 
 
 .beellix-capability-settings,.beellix-capability-settings>.beellix-bootstrap__page{display:contents}
+
+.beellix-discovery-error{margin:16px 0;color:var(--dsw-alias-label-primary,CanvasText)}.beellix-discovery-error p{margin:0 0 10px;line-height:1.6}.beellix-discovery-pagination{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:24px}.beellix-discovery-confirmation{margin-top:20px;padding-top:16px;border-top:1px solid var(--dsw-alias-border-l2,ButtonBorder)}.beellix-discovery-permissions{margin:16px 0;line-height:1.6}.beellix-discovery-permissions strong{font-weight:550}

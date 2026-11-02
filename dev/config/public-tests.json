@@ -45,5 +45,9 @@
   "usage-api.test.mjs",
   "usage.test.mjs",
   "website-account.test.mjs",
-  "workspace-navigation.test.mjs"
+  "workspace-navigation.test.mjs",
+  "website-discovery.test.mjs",
+  "website-discovery-api.test.mjs",
+  "website-discovery-browser.test.mjs",
+  "scene-onboarding.test.mjs"
 ]

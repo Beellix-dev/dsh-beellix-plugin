@@ -6,6 +6,8 @@
 
 需要 Node.js **24+**、Corepack 和 Git；运行插件的宿主要求与开发环境要求分别声明。Windows 构建和测试使用 PowerShell 7。
 
+浏览器用例在 Windows 使用已有的 Microsoft Edge；其他系统在安装依赖后先运行 `corepack yarn exec playwright install --with-deps chromium`。测试只打开隔离页面，不启动日常 DSH。
+
 ```sh
 git clone https://github.com/Beellix-dev/dsh-beellix-plugin.git
 cd dsh-beellix-plugin
