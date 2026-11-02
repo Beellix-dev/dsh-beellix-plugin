@@ -1,4 +1,4 @@
-/** 企业管理员同页选择识别用途，复用现有配置修订和保存接口。 */
+/** 同页选择识别用途，复用现有配置修订和保存接口。 */
 import { useState } from 'react'
 import { Modal, Button } from '@beellix-ai/ui-components'
 import type { SettingsNamespaceView } from '@beellix-ai/api-remotes/client'

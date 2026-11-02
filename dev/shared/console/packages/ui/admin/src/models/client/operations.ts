@@ -32,7 +32,7 @@ export type ModelDiscoveryOutcome =
 
 /** The Host operations the Models page and its cards invoke. */
 export interface ModelsOperations {
-  /** 企业启动参数保存后刷新共享设置镜像，保持模型修订同步。 */
+  /** 启动参数保存后刷新设置镜像，保持模型修订同步。 */
   refreshSettings?: () => Promise<void>
   /**
    * Read one credential reference's state.

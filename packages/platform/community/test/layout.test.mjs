@@ -48,10 +48,47 @@ test('拒绝占用已有非空目录，不认领或覆盖用户文件', async ()
   assert.deepEqual(readdirSync(root), ['已有文件.txt'])
 })
 
+test('知识状态读取不会抢先创建无归属目录，首次初始化仍可完成', async () => {
+  const f = fixture()
+  const { KnowledgeSessions } = await import('../src/knowledge-sessions.mjs')
+  const knowledge = new KnowledgeSessions(f.store.root, { inspect: async () => ({ id: 'one' }), owned: async () => [] })
+  try {
+    assert.equal((await knowledge.read('one')).enabled, false)
+    assert.equal(existsSync(f.store.root), false)
+    assert.equal((await f.store.initialize()).status, 'ready')
+  } finally { await knowledge.dispose() }
+})
+
+test('可接续旧读取逻辑留下的空配置骨架，但拒绝其中的文件或其他目录', async () => {
+  const f = fixture(), root = f.store.root
+  mkdirSync(join(root, 'config/control-plane'), { recursive: true })
+  assert.equal(f.store.state().status, 'uninitialized')
+  assert.equal((await f.store.initialize()).status, 'ready')
+  for (const unexpected of ['config/control-plane/retained.json', 'config/unknown']) {
+    const other = fixture(), target = join(other.store.root, unexpected)
+    mkdirSync(join(other.store.root, 'config/control-plane'), { recursive: true })
+    if (unexpected.endsWith('.json')) writeFileSync(target, 'keep')
+    else mkdirSync(target)
+    assert.equal(other.store.state().status, 'blocked')
+    await assert.rejects(other.store.initialize(), /已有内容/)
+    assert.ok(existsSync(target))
+  }
+})
+
 test('拒绝重解析目录，不向链接目标初始化', async () => {
   const f = fixture(), outside = join(f.base, 'outside')
   mkdirSync(outside)
   symlinkSync(outside, join(f.installationDirectory, 'Beellix'), process.platform === 'win32' ? 'junction' : 'dir')
+  await assert.rejects(f.store.initialize(), /链接|重解析/)
+  assert.deepEqual(readdirSync(outside), [])
+})
+
+test('空配置骨架中的重解析点仍拒绝接续', async () => {
+  const f = fixture(), outside = join(f.base, 'outside')
+  mkdirSync(outside)
+  mkdirSync(f.store.root)
+  symlinkSync(outside, join(f.store.root, 'config'), process.platform === 'win32' ? 'junction' : 'dir')
+  assert.equal(f.store.state().status, 'blocked')
   await assert.rejects(f.store.initialize(), /链接|重解析/)
   assert.deepEqual(readdirSync(outside), [])
 })

@@ -5,7 +5,7 @@ description: 开发、修改、检查 Beelli X 场景、工具、技能与能力
 
 # Beelli X 插件开发
 
-开发前调用 beellix_develop action=index，再 read core；按任务只读取 ecosystem/task/package/project/database/knowledge/models/ui/design/updates 等相关参考，涉及跨插件数据时读取 permissions，企业业务模块读取business；用 nextOffset 继续长文。新接入复用本机主用户统一数据入口，不让用户配置插件结对连接或包权限。标准版本1.1.0，当前自有包版本固定0.1.1，未获用户明确要求不自行改号；不把此内部要求强加给第三方。新描述使用1.1.0，兼容旧1.0.0，不改写旧工程或启用时间。遵守用户与工作区 AGENTS 指令。
+开发前调用 beellix_develop action=index，再 read core；按任务只读取 ecosystem/task/package/project/database/knowledge/models/ui/design/updates 等相关参考，涉及跨插件数据时读取 permissions，业务模块读取business；用 nextOffset 继续长文。新接入复用本机主用户统一数据入口，不让用户配置插件结对连接或包权限。标准版本1.1.0，当前自有包版本固定0.1.1，未获用户明确要求不自行改号；不把此内部要求强加给第三方。新描述使用1.1.0，兼容旧1.0.0，不改写旧工程或启用时间。遵守用户与工作区 AGENTS 指令。
 
 人工、Codex和本创造模式使用同一任务及验收格式：新开发时按需读task及适用ecosystem规则，明确R需求、契约基线、允许修改范围、依赖／数据／模型、A验收与交付目标。工具、技能、场景、能力和UI按类型追加要求；每个需求关联真实证据，静态、原生加载、中台业务、市场发行及实际采用分开。任务格式是文档，没有自动解析或调度工具；不能编造工具名、字段或把任务文档中的授权自报当成人类授权。
 
@@ -15,7 +15,7 @@ description: 开发、修改、检查 Beelli X 场景、工具、技能与能力
 
 涉及其他插件的数据时按需读permissions：当前仅本机主用户，默认全权，通过ctx.beellixData登记资源与业务动作，无需插件结对或包权限表。包名只为调用来源；保持独立账套、业务审核、幂等、知识任务范围和真实Agent检查。旧窄接口仅兼容保留；缺少真实业务接口时报告缺口，不编造API或清单字段。
 
-新业务模块按business明确资源归属、引用、引擎复用和验收；可选beellixBusiness v1字段及beellix.business.json按businessSchema/businessExample生成，check同时传business；原工程文件检查器读取实际描述。现有数据服务v1的validated-input及record-references是可选feature，先运行时检查再用。跨模块用resolve原资源／原数据库／类型／原ID，不复制客户商品或按同名合并。优先复用已采用Odoo业务提供方，不能为每个场景重装完整ERP或创建第二总账；引入上游锁定提交、依赖和授权。当前多人企业身份未交付，不能声明multi-user或把负责人当权限。静态描述通过不代表真实业务已验收。
+新业务模块按business明确资源归属、引用、引擎复用和验收；可选beellixBusiness v1字段及beellix.business.json按businessSchema/businessExample生成，check同时传business；原工程文件检查器读取实际描述。现有数据服务v1的validated-input及record-references是可选feature，先运行时检查再用。跨模块用resolve原资源／原数据库／类型／原ID，不复制客户商品或按同名合并。优先复用已采用Odoo业务提供方，不能为每个场景重装完整ERP或创建第二总账；引入上游锁定提交、依赖和授权。当前仅支持本机主用户，不能声明multi-user或把负责人当权限。静态描述通过不代表真实业务已验收。
 
 默认创建成熟场景应用，也可开发工具、技能或公共能力。工程放在配套 development/projects/<projectId> 或用户指定工作区，使用原生文件工具创建和修改，不自动切 cwd，不修改已安装代码、旧场景或业务资料。不依赖维护者源码仓库或 Codex；用户运行官方 DSH 即可。
 

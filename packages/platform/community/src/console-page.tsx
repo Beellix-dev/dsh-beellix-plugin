@@ -7,7 +7,7 @@ import { createModelsOperations } from "../../../../dev/shared/console/packages/
 import { createSettingsSchemaOperations } from "../../../../dev/shared/console/packages/ui/admin/src/models/client/schema-operations.ts"
 import { zh as modelsZh } from "../../../../dev/shared/console/packages/ui/admin/src/models/client/locales.ts"
 import { SkillDirectory } from "../../../../dev/shared/console/packages/ui/admin/src/pages/client/SkillDirectory.tsx"
-import { zh as adminZh } from "../../../../dev/shared/console/packages/ui/admin/src/pages/client/locales.ts"
+import { zh as adminZh } from "./skill-locales.ts"
 import {SectionTabs,ScenarioDirectory,ResourceDirectory,resourceSections} from './console-structure.tsx'
 export {SectionTabs,DetailHeading,DetailSection,ObjectFacts} from './console-structure.tsx'
 import { NativeModelCatalog } from './model-catalog.tsx'

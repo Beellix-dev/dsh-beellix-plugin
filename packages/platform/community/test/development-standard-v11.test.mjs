@@ -1,3 +1,4 @@
+import {communityReference} from '../../../../dev/shared/community-standard.mjs'
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import {readFile,mkdir,mkdtemp,writeFile} from 'node:fs/promises'
@@ -47,7 +48,7 @@ test('随包标准快照、Skill、检查器和按需参考同步到1.1.0，知�
  assert.equal(library.version,'1.1.0');assert.match(library.skill,/标准版本1\.1\.0/)
  for(const key of ['core','models','knowledge','updates','design','evolution','ecosystem','coCreation','coCreationContract','task','interop','business','businessSchema','businessExample'])assert.ok(library.references[key],key)
  for(const row of Object.values(library.references))assert.equal(createHash('sha256').update(row.text).digest('hex'),row.sha256)
- for(const [key,file] of [['ecosystem','ecosystem-conformance.md'],['coCreation','ecosystem-model.md'],['coCreationContract','ecosystem-model.json'],['task','plugin-development-task.md'],['interop','cross-plugin-integration.md'],['business','business-modules.md']])assert.equal(library.references[key].text,await readFile(new URL('../../../../'+(key.startsWith('coCreation')?'docs/':'standards/')+file,import.meta.url),'utf8'),'Codex文档与DSH随包参考必须同源')
+ for(const [key,file] of [['ecosystem','ecosystem-conformance.md'],['coCreation','ecosystem-model.md'],['coCreationContract','ecosystem-model.json'],['task','plugin-development-task.md'],['interop','cross-plugin-integration.md'],['business','business-modules.md']])assert.equal(library.references[key].text,communityReference(await readFile(new URL('../../../../'+(key.startsWith('coCreation')?'docs/':'standards/')+file,import.meta.url),'utf8')),'随包参考应来自同源社区文档投影')
  assert.match(library.skill,/ecosystem\/task/);assert.match(library.references.task.text,/没有自动调度服务|不是自动调度服务/)
  assert.match(library.skill,/coCreation/);assert.equal(JSON.parse(library.references.coCreationContract.text).operatingModel,'co-creation-first')
  assert.equal(library.capabilities.find(row=>row.id==='knowledge').status.startsWith('planned'),false);assert.match(library.capabilities.find(row=>row.id==='data-platform').status,/planned/)

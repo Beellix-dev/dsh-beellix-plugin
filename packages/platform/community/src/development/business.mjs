@@ -10,7 +10,7 @@ export function validateBusiness(project,manifest,profile,add){
  if(!manifest.files?.includes(declaration.profile))error('PACKAGE','业务描述必须进入打包白名单')
  if(!validate(profile)){error('SCHEMA','业务描述缺失或不符合v1 Schema');return}
  if(profile.moduleId!==project.plugin.id)error('IDENTITY','业务模块ID与工程不一致')
- if(profile.deployment!=='local-owner')error('DEPLOYMENT','当前只有本机主用户；多人企业身份与权限尚未交付，不能声明支持')
+ if(profile.deployment!=='local-owner')error('DEPLOYMENT','当前只支持本机主用户部署，不能声明多人身份与权限')
  const ids=new Set(),checks=new Set(['input-validation','backup-restore','cancel-disable','native-load','package-acceptance'])
  for(const r of profile.resources){
   if(ids.has(r.id)||!r.id.startsWith(profile.moduleId+'.'))error('OWNERSHIP','只能登记本模块唯一资源，不能重新拥有其他模块的数据')

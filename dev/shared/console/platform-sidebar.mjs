@@ -1,6 +1,6 @@
 import React from 'react';
 const h=React.createElement;
-/** Stateless shell shared by community and enterprise; all permissions and data stay in their edition. */
+/** Stateless navigation shell; callers own permissions and data. */
 export function PlatformNavigation({entries,selected,onSelect,brand,icon,close,toggle,width=240,collapsed=false}){
  return h('aside',{className:'beellix-platform-sidebar','data-collapsed':collapsed,style:{width},'aria-label':'Beelli X 中台'},
   h('header',{className:'beellix-platform-sidebar__header'},!collapsed&&h('div',{className:'beellix-platform-sidebar__brand'},brand),

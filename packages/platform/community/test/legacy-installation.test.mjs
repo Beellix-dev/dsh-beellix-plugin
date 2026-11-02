@@ -10,7 +10,7 @@ import {NativeAddons} from '../../../../dev/shared/runtime/native-companion.mjs'
 import {capabilityDefinition} from '../../../../dev/shared/runtime/package-contract.mjs'
 
 const archive=manifest=>{const bytes=Buffer.from(JSON.stringify(manifest)),header=Buffer.alloc(512);header.write('package/package.json');header.write(bytes.length.toString(8).padStart(11,'0'),124);header[156]=48;return gzipSync(Buffer.concat([header,bytes,Buffer.alloc((512-bytes.length%512)%512),Buffer.alloc(1024)]))}
-async function fixture(){
+async function fixture({adoptLegacy=false}={}){
  const base=resolve(import.meta.dirname,'../../../../dev/artifacts/test-results/legacy-installation',randomUUID()),installationDirectory=join(base,'DSH NEXT')
  await mkdir(join(installationDirectory,'resources'),{recursive:true})
  const options={installationDirectory,locatorDirectory:join(base,'locator'),dshHome:join(base,'profile')},store=new LayoutStore(options)
@@ -18,20 +18,21 @@ async function fixture(){
  await writeFile(markerPath,JSON.stringify({...marker,product:'@beellix/dsh-ui'},null,2)+'\n')
  await writeFile(join(root,'environment/package.json'),JSON.stringify({name:'@beellix/local-environment',private:true,type:'module',dependencies:{}},null,2)+'\n')
  await writeFile(join(root,'data/retained.json'),'{"original":"keep"}')
+ if(adoptLegacy)await store.selectRoot(root)
  return{root,options,markerPath}
 }
 const tracked=['beellix-layout.json','environment/package.json','registry.json','data/retained.json']
 const bytes=async root=>Object.fromEntries(await Promise.all(tracked.map(async file=>[file,(await readFile(join(root,file))).toString('base64')])))
 
-test('旧产品标记与环境名称可只读接回，prepare 不改名、不改写资料或登记',async()=>{
- const f=await fixture(),before=await bytes(f.root),reopened=new LayoutStore(f.options)
+test('用户明确选择后旧产品标记与环境名称可接回，prepare 不改名、不改写资料或登记',async()=>{
+ const f=await fixture({adoptLegacy:true}),before=await bytes(f.root),reopened=new LayoutStore(f.options)
  assert.equal(reopened.state().status,'ready')
  await reopened.prepare()
  assert.equal(reopened.state().status,'ready');assert.deepEqual(await bytes(f.root),before)
 })
 
 test('未知归属和环境名称仍拒绝认领，原件逐字保留',async()=>{
- const f=await fixture(),marker=JSON.parse(await readFile(f.markerPath))
+ const f=await fixture({adoptLegacy:true}),marker=JSON.parse(await readFile(f.markerPath))
  await writeFile(f.markerPath,JSON.stringify({...marker,product:'@other/dsh-ui'}));let before=await bytes(f.root)
  assert.equal(new LayoutStore(f.options).state().status,'blocked');assert.deepEqual(await bytes(f.root),before)
  await writeFile(f.markerPath,JSON.stringify(marker));await writeFile(join(f.root,'environment/package.json'),JSON.stringify({name:'@other/local-environment',private:true,dependencies:{}}));before=await bytes(f.root)
