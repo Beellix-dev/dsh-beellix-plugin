@@ -1,11 +1,10 @@
-import React,{useState,useEffect} from 'react'
+import React,{useState} from 'react'
 import {Modal,Switch} from '@beellix-ai/ui-components'
 import {CatalogVendorCard} from "../../../../dev/shared/console/packages/ui/admin/src/models/client/VendorCatalog.tsx"
 import {Mark} from "../../../../dev/shared/console/packages/ui/admin/src/models/client/CatalogModelCard.tsx"
 import css from "../../../../dev/shared/console/packages/ui/admin/src/models/client/VendorCatalog.module.css"
 import navigation from "../../../../dev/shared/console/packages/ui/admin/src/client/NavigationLink.module.css"
 import {ConsoleIcon} from './console-icons.mjs'
-import {vendorIdentity} from './model-catalog.tsx'
 
 const key=(row:any)=>row.id+':'+row.purpose.id
 const title=(row:any)=>row.title+' · '+row.purpose.title
@@ -16,38 +15,24 @@ const active=(row:any)=>row.enabled&&configured(row)&&row.purpose.enabled!==fals
 const status=(row:any)=>!row.enabled?'插件已停用':!configured(row)?'未配置':row.purpose.enabled===false?'已停用':'已启用'
 const localQwen=new Set(['qwen3-embedding:0.6b','qwen3-embedding:4b'])
 
-function IngestionModelForm({row,groups,defaultSelection,busy,onSave,onMainModels}:any){
- const selection=row.purpose.selection,stored=JSON.stringify(selection??null)
- const [enhanced,setEnhanced]=useState(!!selection),[provider,setProvider]=useState(selection?.provider??defaultSelection?.provider??''),[model,setModel]=useState(selection?.model??''),[saving,setSaving]=useState(false)
- const reset=()=>{setEnhanced(!!selection);setProvider(selection?.provider??defaultSelection?.provider??'');setModel(selection?.model??'')}
- useEffect(reset,[stored])
- const choices=groups.filter((group:any)=>group.models.length),current=groups.find((group:any)=>group.id===provider),selected=current?.models.find((item:any)=>item.id===model)
- const defaultGroup=groups.find((group:any)=>group.id===defaultSelection?.provider),defaultModel=defaultGroup?.models.find((item:any)=>item.id===defaultSelection?.model)
- const draft=enhanced?{provider,model}:null,dirty=JSON.stringify(draft)!==stored,disabled=busy||saving||!row.enabled
- const save=async(event:any)=>{event.preventDefault();if(disabled||!dirty||enhanced&&!selected)return;setSaving(true);try{await onSave({pluginId:row.id,purposeId:row.purpose.id,selection:draft,expectedRevision:row.revision})}finally{setSaving(false)}}
- return <form className="beellix-ingestion-model" aria-label="入库模型" onSubmit={event=>void save(event)}>
-  <div className="beellix-model-default"><span className="beellix-model-field-title">默认模型</span><div className="beellix-model-default-value">{defaultModel?<><Mark id={vendorIdentity(defaultSelection.provider).id}/><div><strong title={(defaultGroup.name??defaultGroup.id)+' · 跟随主模型'}>{defaultModel.name??defaultModel.id}</strong></div></>:<div><strong>尚未配置</strong><span>先连接主模型服务</span></div>}</div>{onMainModels&&<button type="button" className="beellix-model-text-action" aria-label="管理主模型" disabled={disabled} onClick={onMainModels}>管理</button>}</div>
-  <div className="beellix-model-enhancement"><div className="beellix-model-enhancement-heading"><h3 title="为入库整理单独选用模型；关闭后使用默认模型。">增强模型</h3><Switch label="启用增强模型" checked={enhanced} disabled={disabled} onChange={setEnhanced}/></div>
-   {enhanced&&<div className="beellix-model-form-fields"><label>模型服务<select aria-label="模型服务" disabled={disabled} value={provider} onChange={event=>{setProvider(event.target.value);setModel('')}}><option value="">选择已配置的服务</option>{provider&&!choices.some((group:any)=>group.id===provider)&&<option value={provider} disabled>{provider}（不可用）</option>}{choices.map((group:any)=><option key={group.id} value={group.id}>{group.name??group.id}</option>)}</select></label><label>增强模型<select aria-label="增强模型" disabled={disabled||!current?.models.length} value={model} onChange={event=>setModel(event.target.value)}><option value="">选择模型</option>{model&&!selected&&<option value={model} disabled>{model}（不可用）</option>}{(current?.models??[]).map((item:any)=><option key={item.id} value={item.id}>{item.name??item.id}</option>)}</select></label>{!choices.length&&<p className="beellix-model-field-help">没有可选的已配置模型，请先在主模型配置中添加。</p>}{model&&!selected&&<p className="beellix-model-field-help" role="alert">原模型已不可用。请选择其他模型，或关闭增强以使用默认模型。</p>}</div>}
-  </div>
-  {dirty&&<footer className="beellix-model-form-footer"><button type="button" aria-label="取消更改" disabled={disabled} onClick={reset}>取消</button><button type="submit" aria-label="保存更改" className="beellix-model-form-save" disabled={disabled||enhanced&&!selected}>{saving?'保存中…':'保存'}</button></footer>}
- </form>
-}
-
-export function PluginModelPlan({group,items,groups=[],defaultSelection,busy,onSave,onConfigure,onMainModels}:any){
- const render=(row:any)=>{
-  if(chat(row))return <IngestionModelForm key={key(row)} row={row} groups={groups} defaultSelection={defaultSelection} busy={busy} onSave={onSave} onMainModels={onMainModels}/>
-  const purpose=row.purpose,ready=configured(row),toggleReason=!row.enabled?'请先启用插件':!ready?'配置完成后可启用':!purpose.canToggle?'此能力不支持独立启停':undefined
-  const name=purpose.operation==='parse'?'MinerU':purpose.connection?.model??'尚未配置'
-  const description=purpose.operation==='embedding'?'资料索引与查询共用此向量模型。':purpose.operation==='rerank'?'对召回结果进一步排序，未启用时使用原检索排序。':'启用后，适用的 PDF、Word、PPT 和图片上传至 MinerU 解析。'
-  return <section className="beellix-model-plan-row" key={key(row)} aria-label={purpose.title}>
-   <div className="beellix-model-plan-copy"><h3 title={description}>{purpose.operation==='parse'?'文档解析':purpose.title}</h3></div><span className="beellix-model-plan-name" title={purpose.connection?.endpoint}>{purpose.operation==='parse'?purpose.enabled===false?'本地':ready?'MinerU':'未配置':name}</span>
-   <div className="beellix-model-plan-actions"><button className="beellix-model-plan-configure" type="button" aria-label={'配置 '+title(row)} disabled={busy||!row.enabled||!onConfigure||!purpose.configurationPanel} onClick={()=>onConfigure(row.purpose.configurationPanel,{capabilityId:row.id.split('/').at(-1),title:row.title,view:'model:'+row.purpose.id})}>配置</button><Switch label={'启用 '+title(row)} checked={!!active(row)} disabled={busy||!!toggleReason} title={toggleReason} onChange={enabled=>onSave({pluginId:row.id,purposeId:purpose.id,enabled,expectedRevision:row.revision})}/></div>
+export function PluginModelList({plugin,items,groups=[],defaultSelection,busy,onSave,onConfigure,onCatalog}:any){
+ const rows=items.filter((row:any)=>!chat(row)||!inheritsMain(row)||row.purpose.selection)
+ const render=(row:any,shared=false)=>{
+  const purpose=row.purpose,selection=purpose.selection??(inheritsMain(row)?defaultSelection:null),provider=groups.find((item:any)=>item.id===selection?.provider),native=provider?.models.find((item:any)=>item.id===selection?.model)
+  const name=chat(row)?native?.name??selection?.model??'未配置':purpose.operation==='parse'?purpose.configured?'已配置':'未配置':purpose.connection?.model??'未配置'
+  const label=purpose.operation==='parse'?'MinerU':purpose.title,reason=!row.enabled?'请先启用插件':!purpose.configured?'配置完成后可启用':!purpose.canToggle?'此能力不支持独立启停':undefined
+  return <section key={key(row)} className="beellix-model-connection-row" aria-label={title(row)}>
+   <h3>{label}</h3><span className="beellix-model-connection-value" title={purpose.operation==='parse'?'文档解析服务':provider?.name??purpose.connection?.endpoint}>{name}</span>
+   <div className="beellix-model-connection-actions">{chat(row)&&inheritsMain(row)&&purpose.selection&&<button type="button" className="beellix-model-connection-configure" aria-label="恢复DSH主模型" disabled={busy||!row.enabled} onClick={()=>onSave({pluginId:row.id,purposeId:purpose.id,selection:null,expectedRevision:row.revision})}>恢复主模型</button>}{!shared&&<button type="button" className="beellix-model-connection-configure" aria-label={'配置 '+title(row)} disabled={busy||!row.enabled||(chat(row)?!onCatalog:!onConfigure||!purpose.configurationPanel)} onClick={()=>chat(row)?onCatalog(row):onConfigure(purpose.configurationPanel,{capabilityId:row.id.split('/').at(-1),title:row.title,view:'model:'+purpose.id})}>配置</button>}{!chat(row)&&<Switch label={'启用 '+title(row)} checked={!!active(row)} disabled={busy||!!reason} title={reason} onChange={enabled=>onSave({pluginId:row.id,purposeId:purpose.id,enabled,expectedRevision:row.revision})}/>}</div>
   </section>
  }
- return <section className="beellix-model-plan" aria-label={group.title+'设置'}>
-  <div className="beellix-model-plan-main">{group.purposeIds.map((id:string)=>items.find((row:any)=>row.purpose.id===id)).filter(Boolean).map(render)}</div>
- </section>
+ const services=plugin.configurationGroups??[]
+ return <section className="beellix-model-connections" aria-label={plugin.title+'模型连接'}>{services.some((group:any)=>group.kind==='connection')?services.map((group:any)=>{
+  const members=group.purposeIds.map((id:string)=>rows.find((row:any)=>row.purpose.id===id)).filter(Boolean),first=members[0]
+  const shared=group.kind==='connection'&&members.length>1&&members.every((row:any)=>!chat(row)&&row.purpose.configurationPanel===first.purpose.configurationPanel)
+  if(!shared)return members.map((row:any)=>render(row))
+  return <div key={group.id} className="beellix-model-service"><header><h3>{group.title}</h3><button type="button" className="beellix-model-connection-configure" aria-label={'配置 '+group.title} disabled={busy||members.some((row:any)=>!row.enabled)||!onConfigure||!first.purpose.configurationPanel} onClick={()=>onConfigure(first.purpose.configurationPanel,{capabilityId:first.id.split('/').at(-1),title:first.title,view:'model:'+first.purpose.id})}>配置连接</button></header>{members.map((row:any)=>render(row,true))}</div>
+ }):rows.map((row:any)=>render(row))}</section>
 }
 
 export function PluginModelConnections({items,groups=[],busy,onSave,onConfigure,onCatalog}:any){

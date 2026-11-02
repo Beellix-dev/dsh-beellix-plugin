@@ -24,9 +24,9 @@ export class PluginModels{
   if(state.configurationGroups!==undefined){
    const ids=new Set(),members=new Set();if(!Array.isArray(state.configurationGroups)||state.configurationGroups.length>16)throw Error('MODEL_STATE_INVALID')
    configurationGroups=state.configurationGroups.map(group=>{
-    if(!group||Object.keys(group).some(key=>!['id','title','description','purposeIds'].includes(key))||!valid(group.id)||ids.has(group.id)||!valid(group.title)||typeof group.description!=='string'||group.description.length>500||!Array.isArray(group.purposeIds)||!group.purposeIds.length||group.purposeIds.some(id=>!purposes.some(p=>p.id===id)||members.has(id)))throw Error('MODEL_STATE_INVALID')
+    if(!group||Object.keys(group).some(key=>!['id','kind','title','description','purposeIds'].includes(key))||group.kind!==undefined&&group.kind!=='connection'||!valid(group.id)||ids.has(group.id)||!valid(group.title)||typeof group.description!=='string'||group.description.length>500||!Array.isArray(group.purposeIds)||!group.purposeIds.length||group.purposeIds.some(id=>!purposes.some(p=>p.id===id)||members.has(id)))throw Error('MODEL_STATE_INVALID')
     ids.add(group.id);for(const id of group.purposeIds){if(members.has(id))throw Error('MODEL_STATE_INVALID');members.add(id)}
-    return{id:group.id,title:group.title,description:group.description,purposeIds:[...group.purposeIds]}
+    return{id:group.id,...group.kind?{kind:group.kind}:{},title:group.title,description:group.description,purposeIds:[...group.purposeIds]}
    });if(members.size!==purposes.length)throw Error('MODEL_STATE_INVALID')
   }
   return {...plugin,revision:state.revision,purposes,...configurationGroups?{configurationGroups}:{}}

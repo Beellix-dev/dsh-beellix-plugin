@@ -61,3 +61,9 @@ test('专用连接的启停仅转交插件适配器，不借用主聊天目录�
  assert.deepEqual((await service.snapshot()).default,{provider:'native',model:'chat'})
  selected={provider:'missing',model:'chat'};assert.equal((await service.snapshot()).default,null)
  })
+
+test('服务连接分组按公开声明管理，同一连接的模型不复制密钥表单',async()=>{
+ const {PluginModels}=await import(moduleUrl('plugin-models.mjs'));let kind='connection'
+ const service=new PluginModels('',{catalog:async()=>[{id:'knowledge',enabled:true}],models:async()=>({groups:[]}),configuration:()=>({read:async()=>({revision:0,configurationGroups:[{id:'qwen',kind,title:'Qwen API',description:'百炼连接',purposeIds:['embedding','rerank']}],purposes:[{id:'embedding',title:'向量',operation:'embedding',selection:null},{id:'rerank',title:'重排',operation:'rerank',selection:null}]}),write:async()=>{}})})
+ assert.equal((await service.snapshot()).plugins[0].configurationGroups[0].kind,'connection');kind='workflow';await assert.rejects(service.snapshot(),/MODEL_STATE_INVALID/)
+})
