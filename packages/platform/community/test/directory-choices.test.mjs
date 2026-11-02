@@ -24,7 +24,7 @@ test('自选目录显示真实项目名，混合旧项目保留，不从名称�
  const sceneCustom={...scene,managedWorkspaceIds:scene.managedWorkspaceIds.filter(id=>id!=='auto-two')}
  assert.equal(projectDirectoryChoices({scene:sceneCustom,sessions,workspaces,sessionId:'two'}).items[0].title,'session-two')
 })
-test('归属尚未读取时不闪出内部目录，也不改写原生状态',()=>{
+test('归属尚未读取时保留原生目录和加载状态，不清空用户工作区选择',()=>{
  const result=projectDirectoryChoices({scene:{ready:false},sessions,workspaces,sessionId:'two'})
- assert.deepEqual(result.items,[]);assert.equal(result.phase,'ready');assert.equal(workspaces.items.length,6)
+ assert.equal(result,workspaces);assert.equal(result.items.length,6)
 })

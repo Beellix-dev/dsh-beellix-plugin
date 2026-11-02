@@ -52,5 +52,7 @@
   "scene-onboarding.test.mjs",
   "mode-seat-browser.test.mjs",
   "mode-header-browser.test.mjs",
-  "knowledge-switch.test.mjs"
+  "knowledge-switch.test.mjs",
+  "model-card-details-browser.test.mjs",
+  "workspace-scope-browser.test.mjs"
 ]

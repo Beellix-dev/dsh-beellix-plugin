@@ -20,7 +20,12 @@ export function CatalogModelCard({ model, vendor, speech, t, children, href }: {
   return <article className={css['modelCard']} data-model-kind={speech ? 'speech' : 'chat'}>
     <div className={css['cardTop']}><Mark id={vendor} /><h3 aria-label={model.name}>{href ? <a href={href} aria-label={`${t('catalogViewModel')} ${model.name}`}>{model.name}</a> : model.name}</h3><div className={css['headerActions']}>{children}</div></div>
     <div className={css['modelCapacity']}><Modalities model={model} t={t} /></div>
-    <details className={css['modelDetails']}><summary>{t('catalogModelDetail')}</summary><code>{model.id}</code></details>
-    <div className={css['modelCapacity']}><span>{t(speech ? 'catalogOutput' : 'contextWindow')}</span><strong>{speech ? t('catalogText') : capacity(model.contextWindow, t)}</strong></div>
+    <details className={css['modelDetails']}>
+      <summary>{t('catalogModelDetail')}</summary>
+      <dl className={css['modelFacts']}>
+        <div><dt>{t('modelId')}</dt><dd><code>{model.id}</code></dd></div>
+        <div><dt>{t(speech ? 'catalogOutput' : 'contextWindow')}</dt><dd>{speech ? t('catalogText') : capacity(model.contextWindow, t)}</dd></div>
+      </dl>
+    </details>
   </article>
 }

@@ -34,27 +34,34 @@ export function installWorkspaceNavigation(ctx,viewSource,{compatibility}={}){
  if(typeof nativeOpen==='function')service.openWorkspace=openWorkspace
  async function start(workspaceId,options,requestedMode){
   try{
+   if(disposed)return
    const snapshot=viewSource.getSnapshot();let view=requestedMode?{...snapshot,mode:requestedMode}:snapshot
    if(!view.ready){
-    if(!view.error){compatibility?.report?.({code:'WORKSPACE_SCOPE_PENDING',message:'对话归属仍在读取，请稍后重试新建。'});return}
-    view={...view,mode:'workspace'}
+    if(workspaceId!==undefined||view.mode==='workspace'||view.error){compatibility?.clear?.('WORKSPACE_SCOPE_PENDING');compatibility?.clear?.('WORKSPACE_START_FAILED');return runNative(workspaceId,options)}
+    compatibility?.report?.({code:'WORKSPACE_SCOPE_PENDING',message:'场景归属仍在读取，请稍后重试场景新建。'});return
    }
    compatibility?.clear?.('WORKSPACE_SCOPE_PENDING')
    if(view.mode==='scenes'&&workspaceId===undefined)return view.startSceneSession?.()
    const freshRequested=options===undefined;let correctedDefault=false
-   if(options?.agentPreset===undefined&&ctx.remote?.agentPresets?.list){
-    const roster=await ctx.remote.agentPresets.list()
-    if(!roster.ok)throw Error(roster.error?.message??'执行模式暂不可用')
-    if(roster.value.presets.find(row=>row.isDefault)?.id==='beellix-scene'){correctedDefault=true;options={...options,agentPreset:'standard'}}
-   }
    if(disposed)return
    compatibility?.clear?.('WORKSPACE_START_FAILED')
    const sessions=ctx.sessions.list.getSnapshot(),workspaces=ctx.workspaces.list.getSnapshot()
    const projection=projectWorkspaceDirectory({sessions,workspaces,scene:view}),items=projection.workspaces.items
    const current=ctx.uiSession.adapter.current.getSnapshot()?.key
    const ordinaryCurrent=projection.excluded.has(current)?undefined:items.find(row=>row.sessionIds.includes(current))
+   const explicit=workspaces.items.find(row=>row.workspaceId===workspaceId)
+   // 明确的目录选择交还原生；未广播的新目录也不能被另一个工作区替代。
+   if(workspaceId!==undefined&&!(options!==undefined&&explicit?.sessionIds.some(id=>projection.excluded.has(id))))return runNative(workspaceId,options)
+   // 普通工作区及原生默认入口不依赖场景状态或额外的模式查询。
+   if(workspaceId===undefined&&(ordinaryCurrent||!projection.excluded.size&&!view.managedWorkspaceIds?.length))return runNative(undefined,options)
+   if(workspaceId===undefined&&options?.agentPreset===undefined&&ctx.remote?.agentPresets?.list){
+    let roster,timer
+    try{roster=await Promise.race([ctx.remote.agentPresets.list(),new Promise(resolve=>{timer=setTimeout(()=>resolve(undefined),500)})])}catch{}finally{clearTimeout(timer)}
+    if(roster?.ok&&roster.value.presets.find(row=>row.isDefault)?.id==='beellix-scene'){correctedDefault=true;options={...options,agentPreset:'standard'}}
+   }
+   if(disposed)return
    const score=row=>Math.max(0,...row.sessionIds.map(id=>sessions.byId[id]?.updatedAt??0))
-   let target=items.find(row=>row.workspaceId===workspaceId)??ordinaryCurrent??[...items].sort((a,b)=>score(b)-score(a))[0]
+   let target=workspaceId!==undefined?explicit:ordinaryCurrent??[...items].sort((a,b)=>score(b)-score(a))[0]
    if(!target){
     if(picking)return picking
     picking=(async()=>{const path=await service.pickDirectory();if(!path||disposed||viewSource.getSnapshot().mode!==snapshot.mode)return;const workspace=await ctx.workspaces.create({path});if(!disposed)return runNative(workspace.workspaceId,options)})()
@@ -103,8 +110,7 @@ export function installWorkspaceScope(ctx,viewSource,{retry,compatibility}={}){
     const useSessions=useCallback(selector=>selector(projection.sessions),[projection.sessions]),useWorkspaces=useCallback(selector=>selector(projection.workspaces),[projection.workspaces])
     const searchSessions=useCallback(async(...args)=>{const result=await props.searchSessions(...args);return filterWorkspaceSearch(result,project())},[props.searchSessions,scene])
     // 中台异常不接管 DSH 的工作区故障状态；原生列表及操作仍可使用。
-    if(!scene.ready&&scene.error)return React.createElement(NativeWorkspace,props)
-    if(!scene.ready)return React.createElement('div',{className:'beellix-workspace-reading','data-beellix-workspace-state':'loading',role:'status'},'正在读取工作区…')
+    if(!scene.ready)return React.createElement(NativeWorkspace,props)
     return React.createElement(NativeWorkspace,{...props,useSessions,useWorkspaces,searchSessions})
    }
    // 保留原登记身份：renderSlot 授权属于它，复制登记会丢失子槽，重声明又会冲突。

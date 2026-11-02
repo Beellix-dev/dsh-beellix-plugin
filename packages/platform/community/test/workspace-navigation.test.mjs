@@ -2,12 +2,12 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import {installWorkspaceNavigation} from '../src/workspace-scope.mjs'
 
-test('场景服务失败不阻断原生工作区新增；加载中仍等待归属，恢复后仍按场景路由',async()=>{
+test('场景服务失败或加载不阻断明确的工作区新增，恢复后隐式场景入口仍按场景路由',async()=>{
  const calls=[],issues=[];let view={ready:false,mode:'scenes',links:{},error:'目录不兼容'}
  const ctx={uiWorkspace:{startSession:(...args)=>calls.push(args)},sessions:{list:{getSnapshot:()=>({byId:{plain:{id:'plain'}}})}},workspaces:{list:{getSnapshot:()=>({items:[{workspaceId:'project',sessionIds:['plain']}]})}},uiSession:{adapter:{current:{getSnapshot:()=>({key:'plain'})}}}}
  const nav=installWorkspaceNavigation(ctx,{getSnapshot:()=>view},{compatibility:{report:issue=>issues.push(issue),clear:()=>{}}})
  await ctx.uiWorkspace.startSession('project');assert.deepEqual(calls,[['project',undefined]])
- view={...view,error:''};await ctx.uiWorkspace.startSession('project');assert.equal(calls.length,1);assert.equal(issues.at(-1).code,'WORKSPACE_SCOPE_PENDING')
+ view={...view,error:''};await ctx.uiWorkspace.startSession('project');assert.equal(calls.length,2)
  view={...view,ready:true,startSceneSession:()=>calls.push('scene')};await ctx.uiWorkspace.startSession();assert.equal(calls.at(-1),'scene')
  nav.dispose()
 })
@@ -54,13 +54,37 @@ test('项目内新增携带原生 clearPreviousDraft=false 时，不复用同项
  assert.deepEqual(opened,['native-fresh']);assert.deepEqual(calls,[{workspaceId:'project'}]);navigation.dispose()
 })
 
-test('工作区新增遇到旧场景默认预设时显式使用 standard，保留原生其他默认和既有会话',async()=>{
+test('从场景返回工作区时纠正旧场景默认预设，保留原生其他默认和显式选项',async()=>{
  const calls=[];let defaultId='beellix-scene'
- const ctx={remote:{agentPresets:{list:async()=>({ok:true,value:{presets:[{id:defaultId,isDefault:true}]}})}},uiWorkspace:{startSession:(...args)=>calls.push(args)},sessions:{list:{getSnapshot:()=>({byId:{plain:{id:'plain'}}})}},workspaces:{list:{getSnapshot:()=>({items:[{workspaceId:'project',sessionIds:['plain']}]})}},uiSession:{adapter:{current:{getSnapshot:()=>({key:'plain'})}}}}
- const nav=installWorkspaceNavigation(ctx,{getSnapshot:()=>({mode:'workspace',ready:true,links:{}})})
- await ctx.uiWorkspace.startSession('project',{clearPreviousDraft:false})
+ const ctx={remote:{agentPresets:{list:async()=>({ok:true,value:{presets:[{id:defaultId,isDefault:true}]}})}},uiWorkspace:{startSession:(...args)=>calls.push(args)},sessions:{list:{getSnapshot:()=>({byId:{plain:{id:'plain'},quote:{id:'quote'}}})}},workspaces:{list:{getSnapshot:()=>({items:[{workspaceId:'project',sessionIds:['plain']},{workspaceId:'scene',sessionIds:['quote']}]})}},uiSession:{adapter:{current:{getSnapshot:()=>({key:'quote'})}}}}
+ const nav=installWorkspaceNavigation(ctx,{getSnapshot:()=>({mode:'workspace',ready:true,links:{quote:'quote'}})})
+ await ctx.uiWorkspace.startSession(undefined,{clearPreviousDraft:false})
  assert.deepEqual(calls[0],['project',{clearPreviousDraft:false,agentPreset:'standard'}])
  defaultId='ptc';await ctx.uiWorkspace.startSession('project');assert.deepEqual(calls[1],['project',undefined])
  const opts={agentPreset:'cordis'};await ctx.uiWorkspace.startSession('project',opts);assert.equal(calls[2][1],opts)
  nav.dispose()
+})
+
+test('明确选择的工作区不被其他目录替代，也不等待中台或预设服务',async()=>{
+ const calls=[];let view={mode:'workspace',ready:false,links:{}},presetReads=0
+ const ctx={remote:{agentPresets:{list:()=>{presetReads++;throw Error('预设服务不可用')}}},uiWorkspace:{startSession:(...args)=>calls.push(args)},sessions:{list:{getSnapshot:()=>({byId:{old:{id:'old'}}})}},workspaces:{list:{getSnapshot:()=>({items:[{workspaceId:'old-default',sessionIds:['old']}]})}},uiSession:{adapter:{current:{getSnapshot:()=>({key:'old'})}}}}
+ const nav=installWorkspaceNavigation(ctx,{getSnapshot:()=>view}),options={clearPreviousDraft:false,agentPreset:'cordis'}
+ await ctx.uiWorkspace.startSession('chosen-V0.5',options);assert.deepEqual(calls[0],['chosen-V0.5',options])
+ view={...view,ready:true};await ctx.uiWorkspace.startSession('new-workspace-not-yet-broadcast',options);assert.deepEqual(calls[1],['new-workspace-not-yet-broadcast',options])
+ await ctx.uiWorkspace.startSession();assert.deepEqual(calls[2],[undefined,undefined]);assert.equal(presetReads,0)
+ nav.dispose()
+})
+
+test('没有已建工作区时保留原生默认工作区流程，不强制改为插件选目录',async()=>{
+ const calls=[],ctx={uiWorkspace:{startSession:(...args)=>calls.push(args),pickDirectory:()=>{throw Error('不应拦截原生默认工作区')}},sessions:{list:{getSnapshot:()=>({byId:{}})}},workspaces:{list:{getSnapshot:()=>({items:[]})}},uiSession:{adapter:{current:{getSnapshot:()=>({key:undefined})}}}}
+ const nav=installWorkspaceNavigation(ctx,{getSnapshot:()=>({mode:'workspace',ready:true,links:{}})})
+ await ctx.uiWorkspace.startSession();assert.deepEqual(calls,[[undefined,undefined]]);nav.dispose()
+})
+
+test('预设读取失败或一直未返回时，从场景回到工作区仍能新建',async()=>{
+ const calls=[],ctx={remote:{agentPresets:{list:async()=>{throw Error('RPC unavailable')}}},uiWorkspace:{startSession:(...args)=>calls.push(args)},sessions:{list:{getSnapshot:()=>({byId:{quote:{id:'quote'},plain:{id:'plain'}}})}},workspaces:{list:{getSnapshot:()=>({items:[{workspaceId:'scene',sessionIds:['quote']},{workspaceId:'project',sessionIds:['plain']}]})}},uiSession:{adapter:{current:{getSnapshot:()=>({key:'quote'})}}}}
+ const nav=installWorkspaceNavigation(ctx,{getSnapshot:()=>({mode:'workspace',ready:true,links:{quote:'quote'}})})
+ await nav.startWorkspaceSession();assert.deepEqual(calls[0],['project',undefined])
+ ctx.remote.agentPresets.list=()=>new Promise(()=>{})
+ await nav.startWorkspaceSession();assert.deepEqual(calls[1],['project',undefined]);nav.dispose()
 })

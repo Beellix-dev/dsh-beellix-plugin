@@ -4,7 +4,7 @@ import {projectWorkspaceDirectory} from './workspace-scope.mjs'
 const h=React.createElement,PICKER='conversation.hero.workspace',OWN='beellix-directory-picker-refresh'
 
 export function projectDirectoryChoices({scene,sessions,workspaces,sessionId,workspaceId}){
- if(!scene.ready)return{...workspaces,phase:'ready',items:[]}
+ if(!scene.ready)return workspaces
  const projected=projectWorkspaceDirectory({scene,sessions,workspaces}).workspaces
  if(scene.mode!=='scenes'||!scene.links?.[sessionId])return projected
  const current=workspaces.items.find(row=>row.workspaceId===workspaceId)??workspaces.items.find(row=>row.sessionIds.includes(sessionId))
@@ -26,10 +26,10 @@ export function installDirectoryChoices(ctx,viewSource,{compatibility}={}){
   const workspaces=props.useWorkspaces(value=>value)
   const snapshot=useMemo(()=>enabled?projectDirectoryChoices({scene,sessions,workspaces,sessionId,workspaceId:props.selectedId}):workspaces,[enabled,scene,sessions,workspaces,sessionId,props.selectedId])
   const useWorkspaces=useCallback(selector=>selector(snapshot),[snapshot])
-  const inScene=enabled&&scene.mode==='scenes'&&Boolean(scene.links?.[sessionId])
+  const inScene=enabled&&scene.ready&&scene.mode==='scenes'&&Boolean(scene.links?.[sessionId])
   const t=useCallback((key,...args)=>inScene&&key==='hero.chooseWorkspace'?'执行目录':inScene&&key==='menu.addWorkspace'?'选择其他目录…':props.t(key,...args),[inScene,props.t])
   const current=workspaces.items.find(row=>row.workspaceId===props.selectedId)
-  const label=enabled&&!scene.ready?'执行目录':inScene&&scene.managedWorkspaceIds?.includes(current?.workspaceId)?'会话文件':undefined
+  const label=inScene&&scene.managedWorkspaceIds?.includes(current?.workspaceId)?'会话文件':undefined
   useLayoutEffect(()=>{
    const anchor=props.anchorRef?.current;if(!anchor||label===undefined)return
    const names=['data-beellix-execution-label','aria-label','title'],previous=names.map(name=>anchor.getAttribute(name))
