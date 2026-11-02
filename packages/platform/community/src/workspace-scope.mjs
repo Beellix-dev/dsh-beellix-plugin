@@ -93,7 +93,7 @@ export function installWorkspaceNavigation(ctx,viewSource,{compatibility}={}){
 
 export function installWorkspaceScope(ctx,viewSource,{retry,compatibility}={}){
  let current,release,updating=false,disposed=false
- const project=()=>projectWorkspaceDirectory({sessions:ctx.sessions.list.getSnapshot(),workspaces:ctx.workspaces.list.getSnapshot(),scene:viewSource.getSnapshot()})
+ const project=()=>{const scene=viewSource.getSnapshot(),sessions=ctx.sessions.list.getSnapshot(),workspaces=ctx.workspaces.list.getSnapshot();return scene.ready?projectWorkspaceDirectory({sessions,workspaces,scene}):{excluded:new Set(),sessions,workspaces}}
  const sync=()=>{
   if(disposed||updating)return;updating=true
   try{
@@ -106,11 +106,11 @@ export function installWorkspaceScope(ctx,viewSource,{retry,compatibility}={}){
     const scene=useSyncExternalStore(viewSource.subscribe,viewSource.getSnapshot)
     const sessions=useSyncExternalStore(fn=>ctx.sessions.list.subscribe(fn),()=>ctx.sessions.list.getSnapshot())
     const workspaces=useSyncExternalStore(fn=>ctx.workspaces.list.subscribe(fn),()=>ctx.workspaces.list.getSnapshot())
-    const projection=useMemo(()=>projectWorkspaceDirectory({sessions,workspaces,scene}),[sessions,workspaces,scene])
-    const useSessions=useCallback(selector=>selector(projection.sessions),[projection.sessions]),useWorkspaces=useCallback(selector=>selector(projection.workspaces),[projection.workspaces])
+    const projection=useMemo(()=>scene.ready?projectWorkspaceDirectory({sessions,workspaces,scene}):{sessions,workspaces},[sessions,workspaces,scene])
+    // 原生注入函数自身会调用 Hook：所有加载阶段都沿同一读取链，不能在就绪时改为普通 selector。
+    const useSessions=useCallback(selector=>props.useSessions(()=>selector(projection.sessions)),[props.useSessions,projection.sessions]),useWorkspaces=useCallback(selector=>props.useWorkspaces(()=>selector(projection.workspaces)),[props.useWorkspaces,projection.workspaces])
     const searchSessions=useCallback(async(...args)=>{const result=await props.searchSessions(...args);return filterWorkspaceSearch(result,project())},[props.searchSessions,scene])
     // 中台异常不接管 DSH 的工作区故障状态；原生列表及操作仍可使用。
-    if(!scene.ready)return React.createElement(NativeWorkspace,props)
     return React.createElement(NativeWorkspace,{...props,useSessions,useWorkspaces,searchSessions})
    }
    // 保留原登记身份：renderSlot 授权属于它，复制登记会丢失子槽，重声明又会冲突。

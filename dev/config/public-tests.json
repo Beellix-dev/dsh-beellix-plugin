@@ -54,5 +54,6 @@
   "mode-header-browser.test.mjs",
   "knowledge-switch.test.mjs",
   "model-card-details-browser.test.mjs",
-  "workspace-scope-browser.test.mjs"
+  "workspace-scope-browser.test.mjs",
+  "scene-sidebar.test.mjs"
 ]
