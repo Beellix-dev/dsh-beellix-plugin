@@ -31,7 +31,7 @@ export class PluginModels{
   }
   return {...plugin,revision:state.revision,purposes,...configurationGroups?{configurationGroups}:{}}
  }
- async snapshot(){const [plugins,catalog]=await Promise.all([this.catalog(),this.models()]);return {plugins:await Promise.all(plugins.map(row=>this.describe(row))),groups:catalog.groups,kinds:modelKinds}}
+ async snapshot(){const [plugins,catalog]=await Promise.all([this.catalog(),this.models()]);const selected=catalog.default;const available=selected&&valid(selected.provider)&&valid(selected.model)&&catalog.groups.some(group=>group.id===selected.provider&&group.models.some(model=>model.id===selected.model));return {plugins:await Promise.all(plugins.map(row=>this.describe(row))),default:available?{provider:selected.provider,model:selected.model}:null,groups:catalog.groups,kinds:modelKinds}}
  async validateSelection(selection,modalities=[],operation='chat'){
   if(operation!=='chat')throw Error('PLUGIN_MODEL_PURPOSE_REQUIRED')
   if(!selectionValid(selection))throw Error('MODEL_CONTROL_INVALID')

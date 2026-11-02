@@ -3,14 +3,14 @@ import {ConsoleIcon} from './console-icons.mjs'
 import {Mark} from "../../../../dev/shared/console/packages/ui/admin/src/models/client/CatalogModelCard.tsx"
 import {vendorIdentity} from './model-catalog.tsx'
 import {SectionTabs} from './console-structure.tsx'
-import {PluginModelConnections,PluginModelGroups,PluginModelPlan} from './plugin-model-connections.tsx'
+import {PluginModelConnections,PluginModelPlan} from './plugin-model-connections.tsx'
 
-export function PluginModelConfiguration({state,busy,onSave,renderModels,onConfigure,onCatalogChange}:any){
+export function PluginModelConfiguration({state,busy,onSave,renderModels,onConfigure,onCatalogChange,onMainModels}:any){
  const [pluginId,setPluginId]=useState(''),[target,setTarget]=useState(''),[workflow,setWorkflow]=useState('')
  const plugins=(state?.plugins??[]).filter((plugin:any)=>plugin.purposes?.length)
  const plugin=plugins.find((item:any)=>item.id===pluginId)??plugins[0],active=plugin?.id
  const rows=(plugin?.purposes??[]).map((purpose:any)=>({...plugin,purpose}))
- const groups=plugin?.configurationGroups??[],group=groups.find((item:any)=>item.id===workflow),visible=group?rows.filter((item:any)=>group.purposeIds.includes(item.purpose.id)):rows
+ const groups=plugin?.configurationGroups??[],group=groups.find((item:any)=>item.id===workflow)??groups[0]
  const row=rows.find((item:any)=>item.id+':'+item.purpose.id===target)
  const nativeCatalog=!!row&&(!row.purpose.operation||row.purpose.operation==='chat')
  useEffect(()=>{onCatalogChange?.(nativeCatalog)},[nativeCatalog,onCatalogChange])
@@ -18,7 +18,14 @@ export function PluginModelConfiguration({state,busy,onSave,renderModels,onConfi
  if(!plugins.length)return <p role="status" className="beellix-console__empty">暂无需要配置的插件模型</p>
  const key=row?row.id+':'+row.purpose.id:''
  const save=(selection:any)=>onSave({pluginId:row.id,purposeId:row.purpose.id,selection,expectedRevision:row.revision})
- return <section aria-label="插件模型配置"><div className="beellix-plugin-model-toolbar"><SectionTabs label="插件模型分组" buttons disabled={busy} items={plugins.map((item:any)=>[item.id,item.title])} active={active} onChange={id=>{setPluginId(id);setTarget('');setWorkflow('')}}/></div>{nativeCatalog?<><div className="beellix-plugin-model-toolbar"><button onClick={()=>setTarget('')}>{group?'返回'+group.title:'返回插件模型'}</button><strong>{row.purpose.title}</strong>{row.purpose.selection&&!state.groups?.some((group:any)=>group.id===row.purpose.selection.provider&&group.models.some((model:any)=>model.id===row.purpose.selection.model))&&<button disabled={busy||!row.enabled} onClick={()=>save(null)}>清除选择</button>}</div>{renderModels?.({key,modalities:row.purpose.inputModalities??[],selection:row.purpose.selection,label:row.purpose.title,disabled:busy||!row.enabled,onSelect:save})}</>:groups.length&&!group?<PluginModelGroups plugin={plugin} groups={groups} busy={busy} onConfigure={setWorkflow}/>:<>{group?<PluginModelPlan key={active+':'+group.id} group={group} items={visible} groups={state.groups??[]} busy={busy} onSave={onSave} onConfigure={onConfigure} onCatalog={(item:any)=>setTarget(item.id+':'+item.purpose.id)} onBack={()=>setWorkflow('')}/>:<PluginModelConnections key={active} items={rows} groups={state.groups??[]} busy={busy} onSave={onSave} onConfigure={onConfigure} onCatalog={(item:any)=>setTarget(item.id+':'+item.purpose.id)}/>}</>}</section>
+ return <section aria-label="插件模型配置">
+  {(plugins.length>1||!groups.length)&&<div className="beellix-plugin-model-toolbar"><SectionTabs label="插件模型分组" buttons disabled={busy} items={plugins.map((item:any)=>[item.id,item.title])} active={active} onChange={id=>{setPluginId(id);setTarget('');setWorkflow('')}}/></div>}
+  {nativeCatalog?<><div className="beellix-plugin-model-toolbar"><button onClick={()=>setTarget('')}>返回插件模型</button><strong>{row.purpose.title}</strong>{row.purpose.selection&&!state.groups?.some((group:any)=>group.id===row.purpose.selection.provider&&group.models.some((model:any)=>model.id===row.purpose.selection.model))&&<button disabled={busy||!row.enabled} onClick={()=>save(null)}>清除选择</button>}</div>{renderModels?.({key,modalities:row.purpose.inputModalities??[],selection:row.purpose.selection,label:row.purpose.title,disabled:busy||!row.enabled,onSelect:save})}</>:groups.length?<div className="beellix-model-settings">
+   <header className="beellix-model-settings-heading"><h2>{plugin.title}模型</h2><p>所有入库入口共用设置，检索独立配置。</p></header>
+   <SectionTabs label="模型方案" buttons disabled={busy} items={groups.map((item:any)=>[item.id,item.title])} active={group.id} onChange={setWorkflow}/>
+   {groups.map((item:any)=><div hidden={item.id!==group.id} key={active+':'+item.id}><PluginModelPlan group={item} items={rows.filter((row:any)=>item.purposeIds.includes(row.purpose.id))} groups={state.groups??[]} defaultSelection={state.default} busy={busy} onSave={onSave} onConfigure={onConfigure} onMainModels={onMainModels}/></div>)}
+  </div>:<PluginModelConnections key={active} items={rows} groups={state.groups??[]} busy={busy} onSave={onSave} onConfigure={onConfigure} onCatalog={(item:any)=>setTarget(item.id+':'+item.purpose.id)}/>}
+ </section>
 }
 const dash=(data:any)=>data?.message??'暂无官方数据'
 const amount=(value:any)=>typeof value==='string'||typeof value==='number'?String(value):'—'

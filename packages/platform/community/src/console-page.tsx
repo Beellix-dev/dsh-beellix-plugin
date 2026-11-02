@@ -51,6 +51,19 @@ export function ModelsPage({ face, catalog, onEnabled, onModelEnabled, onRefresh
   return <><Modal open={Boolean(adding)} title="添加模型" closeLabel="关闭" onClose={onCloseAdd}><AddModelForm face={face} state={state} onClose={onCloseAdd} onRefresh={onRefresh}/></Modal><div className="beellix-console__original-models" onClickCapture={event => { const anchor = (event.target as HTMLElement).closest('a[href]'); if (!anchor) return; const url = new URL(anchor.getAttribute('href')!, document.baseURI); if (url.pathname !== '/admin/models') return; event.preventDefault(); setLocation(Object.fromEntries(url.searchParams)) }}>{catalog ? <NativeModelCatalog modelSelection={modelSelection} webSearch={webSearch} state={state} catalog={catalog} operations={face.operations} location={location} onEnabled={onEnabled} onModelEnabled={onModelEnabled} schema={face.schema} onRefresh={async()=>{await face.models.load();await onRefresh?.()}} t={(key:string)=>key==='enableWebSearch'?'使用 Search API':(modelsZh as any)[key]??key}/> : <ModelsSection webSearch={webSearch} providerCards catalogLocation={location} controller={face.models} operations={face.operations} schema={face.schema} t={(key: string) => (modelsZh as any)[key] ?? key} useSnapshot={selector => selector(state)} renderSlot={() => null} />}</div></>
 }
 
+function ConfiguredPluginModels({face,directory,...props}:any){
+ const native=useSyncExternalStore(face.models.store.subscribe,face.models.store.getSnapshot)
+ useEffect(()=>{if(face.models.store.getSnapshot().status==='idle')void face.models.load()},[face])
+ if(native.status!=='ready')return <p role={native.error?'alert':'status'} className="beellix-console__empty">{native.error??'读取已配置模型…'}</p>
+ const groups=(props.state?.groups??[]).flatMap((group:any)=>{
+  const row=native.rows.find((item:any)=>item.entry.provider===group.id),entry=directory?.items.find((item:any)=>item.provider===group.id)
+  if(row?.entry.active===false||(row?.credential??row?.derivedCredential)?.configured===false||entry?.enabled===false)return[]
+  const models=group.models.filter((model:any)=>!entry||entry.models.find((item:any)=>item.id===model.id)?.enabled!==false)
+  return models.length?[{...group,models}]:[]
+ })
+ return <PluginModelConfiguration {...props} state={props.state?{...props.state,groups}:undefined}/>
+}
+
 export function SkillsPage({ items, read }: any) {
   return <SkillDirectory state={{ skills: items, skillsIncomplete: false } as any} t={(key: string) => (adminZh as any)[key] ?? key} read={read} />
 }
@@ -69,6 +82,7 @@ function ConsoleModules({tab,api,modelFace,openPanel,initialPrice,openManager,re
   const [resourceInstalling,setResourceInstalling]=useState<any>(),[resourceSection,setResourceSection]=useState('knowledge')
   const [resourceActions,setResourceActions]=useState<Record<string,any>>({})
   const registerActions=useCallback((id:string,actions:any)=>{setResourceActions(current=>({...current,[id]:actions}));return()=>setResourceActions(current=>current[id]===actions?{...current,[id]:undefined}:current)},[])
+  const PluginSettings=modelFace?ConfiguredPluginModels:PluginModelConfiguration
   const reading=busy
   const generation=useRef(0)
   const load=async()=>{
@@ -100,7 +114,7 @@ function ConsoleModules({tab,api,modelFace,openPanel,initialPrice,openManager,re
     <OperationFeedback error={error} notice={notice} onErrorDone={()=>setError('')} onNoticeDone={()=>setNotice('')}/>
     {!state?<p role="status" className="beellix-console__empty">{busy?'读取中…':'请刷新重试'}</p>:<>
       {tab==='models'&&section==='models'&&(modelCatalog&&modelFace?<ModelsPage webSearch={search?{...search,busy,onChange:(enabled:boolean)=>void run(()=>api.mutate('models/search',{enabled,expectedRevision:search.revision}))}:undefined} face={modelFace()} catalog={modelCatalog} adding={addingModel} onCloseAdd={()=>setAddingModel(false)} onEnabled={(input:any)=>api.mutate('models/enabled',input)} onModelEnabled={(input:any)=>api.mutate('models/selection',input)} onRefresh={load}/>:<p role="status" className="beellix-console__empty">{busy?'读取中…':'模型目录暂不可用，请刷新。'}</p>)}
-      {tab==='models'&&section==='plugin-models'&&<PluginModelConfiguration onCatalogChange={setPluginUsesCatalog} onConfigure={openPanel} state={pluginModels} busy={busy} onSave={(input:any)=>void run(()=>api.mutate('models/plugins',input))} renderModels={(purpose:any)=>modelCatalog&&modelFace?<ModelsPage key={purpose.key} face={modelFace()} modelSelection={purpose} catalog={{...modelCatalog,items:modelCatalog.items.map((item:any)=>({...item,models:item.models.filter((model:any)=>!model.inputModalities||purpose.modalities.every((kind:string)=>model.inputModalities.includes(kind)))})).filter((item:any)=>item.models.length||!item.modelsKnown)}} adding={addingModel} onCloseAdd={()=>setAddingModel(false)} onEnabled={(input:any)=>api.mutate('models/enabled',input)} onModelEnabled={(input:any)=>api.mutate('models/selection',input)} onRefresh={load}/>:<p role="status" className="beellix-console__empty">{busy?'读取中…':'模型目录暂不可用，请刷新。'}</p>}/>}
+      {tab==='models'&&section==='plugin-models'&&<PluginSettings face={modelFace?.()} directory={modelCatalog} onMainModels={()=>setSection('models')} onCatalogChange={setPluginUsesCatalog} onConfigure={openPanel} state={pluginModels} busy={busy} onSave={(input:any)=>run(()=>api.mutate('models/plugins',input))} renderModels={(purpose:any)=>modelCatalog&&modelFace?<ModelsPage key={purpose.key} face={modelFace()} modelSelection={purpose} catalog={{...modelCatalog,items:modelCatalog.items.map((item:any)=>({...item,models:item.models.filter((model:any)=>!model.inputModalities||purpose.modalities.every((kind:string)=>model.inputModalities.includes(kind)))})).filter((item:any)=>item.models.length||!item.modelsKnown)}} adding={addingModel} onCloseAdd={()=>setAddingModel(false)} onEnabled={(input:any)=>api.mutate('models/enabled',input)} onModelEnabled={(input:any)=>api.mutate('models/selection',input)} onRefresh={load}/>:<p role="status" className="beellix-console__empty">{busy?'读取中…':'模型目录暂不可用，请刷新。'}</p>}/>}
       {tab==='models'&&section==='account'&&<OfficialModelAccounts state={officialModels}/>}
       {tab==='scenarios'&&<ScenarioDirectory items={scenes} allItems={inventory?.scenes??[]} allCount={inventory?.scenes?.length??0} busy={busy} filters={sceneFilters} onManage={manage} onToggle={(row:any,enabled:boolean)=>void run(()=>api.mutate('scene/enabled',{packageName:row.packageName,enabled,expectedVersion:row.version,expectedEnabled:row.enabled}))}/>}
       {tab==='resources'&&<>{state.addonError&&<p role="alert">{state.addonError}</p>}<ResourceDirectory items={state.capabilities??[]} busy={busy} selected={resourceSection} renderCapability={renderCapability} registerActions={registerActions} onEnable={(row:any)=>void run(()=>api.mutate('addons/enabled',{id:row.id,enabled:true,expectedVersion:row.version,expectedEnabled:false}))} openPanel={openPanel}/></>}

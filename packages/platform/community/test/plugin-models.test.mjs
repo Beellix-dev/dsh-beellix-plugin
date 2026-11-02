@@ -54,3 +54,10 @@ test('专用连接的启停仅转交插件适配器，不借用主聊天目录�
  await assert.rejects(service.save({pluginId:'@beellix-ai/knowledge',purposeId:'embedding',enabled:true,expectedRevision:3}),/CHANGED/)
  await assert.rejects(service.save({pluginId:'@beellix-ai/knowledge',purposeId:'embedding',selection:null,enabled:true,expectedRevision:4}),/INVALID/)
 })
+
+ test('默认模型只展示原生目录的可用选择，不暴露连接配置',async()=>{
+ const {PluginModels}=await import(moduleUrl('plugin-models.mjs'));let selected={provider:'native',model:'chat',reasoningEffort:'high'}
+ const service=new PluginModels('',{catalog:async()=>[],models:async()=>({default:selected,groups:[{id:'native',name:'Native',models:[{id:'chat',name:'Chat'}]}]})})
+ assert.deepEqual((await service.snapshot()).default,{provider:'native',model:'chat'})
+ selected={provider:'missing',model:'chat'};assert.equal((await service.snapshot()).default,null)
+ })
