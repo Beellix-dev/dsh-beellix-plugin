@@ -57,3 +57,5 @@ MinerU由知识包声明`kind:document, operation:parse, id:parser`，在“插�
 专用用途可增加 `configured`、`enabled`、`canToggle` 和 `connection: {kind:'local'|'api',model,endpoint?}`。连接信息只包含模型和无凭据地址，拒绝密钥字段及带账号/密码/查询串的 URL；不从非聊天模型伪造上下文窗口或聊天能力。旧适配器没有这些字段时仍可配置，但开关只读并说明原因。启停使用 `write({purposeId,enabled,expectedRevision})`，不能同时提交 selection；仅允许已声明 canToggle 的非chat用途。配置按钮打开该插件的配置页，详情显示真实连接，不复制密钥。
 
 知识模型的 enabled 默认兼容为 true；只有用户操作才写入。关闭检索阻止新推理、保留待处理任务与原有资料；恢复后继续，不清除连接、缓存或凭据。停用可选重排时沿用原检索排序。修订冲突拒绝覆盖，不改主模型或旧会话；插件停用时配置与开关均禁用。需共同安装支持该扩展的 UI/知识候选，旧包不自动获得这些能力；采用状态见知识实施说明和 STATUS.md。
+
+专用模型可由业务包声明`modelOptions:string[]`，中台使用统一行内选择器，不内置厂商型号。选择提交`write({purposeId,modelId,expectedRevision})`；服务端再次核对该用途声明的型号、连接可用性和修订，拒绝混合写入。已有共用服务密钥时，业务包可允许未独立配置的可选用途直接启用，并由业务包创建默认连接；缺少密钥时，点击开关进入该业务包的连接表单。中台不保存密钥、不调用模型、不实现知识业务。

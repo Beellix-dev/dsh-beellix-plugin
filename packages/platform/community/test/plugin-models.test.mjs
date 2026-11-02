@@ -67,3 +67,11 @@ test('服务连接分组按公开声明管理，同一连接的模型不复制�
  const service=new PluginModels('',{catalog:async()=>[{id:'knowledge',enabled:true}],models:async()=>({groups:[]}),configuration:()=>({read:async()=>({revision:0,configurationGroups:[{id:'qwen',kind,title:'Qwen API',description:'百炼连接',purposeIds:['embedding','rerank']}],purposes:[{id:'embedding',title:'向量',operation:'embedding',selection:null},{id:'rerank',title:'重排',operation:'rerank',selection:null}]}),write:async()=>{}})})
  assert.equal((await service.snapshot()).plugins[0].configurationGroups[0].kind,'connection');kind='workflow';await assert.rejects(service.snapshot(),/MODEL_STATE_INVALID/)
 })
+
+test('专用型号由插件声明并按原修订保存；已有共用连接时允许首次启用，拒绝错误类型与混合写入',async()=>{
+ const {PluginModels}=await import(moduleUrl('plugin-models.mjs'));const calls=[]
+ const adapter={read:async()=>({revision:1,purposes:[{id:'rerank',title:'检索重排',operation:'rerank',configured:false,canToggle:true,modelOptions:['qwen3-rerank'],selection:null}]}),write:async input=>{calls.push(input);return{application:'applied'}}}
+ const service=new PluginModels('',{catalog:async()=>[{id:'knowledge',enabled:true}],models:async()=>({groups:[]}),configuration:()=>adapter});assert.deepEqual((await service.snapshot()).plugins[0].purposes[0].modelOptions,['qwen3-rerank'])
+ await service.save({pluginId:'knowledge',purposeId:'rerank',modelId:'qwen3-rerank',expectedRevision:1});await service.save({pluginId:'knowledge',purposeId:'rerank',enabled:true,expectedRevision:1});assert.equal(calls.length,2)
+ await assert.rejects(service.save({pluginId:'knowledge',purposeId:'rerank',modelId:'qwen-plus',expectedRevision:1}));await assert.rejects(service.save({pluginId:'knowledge',purposeId:'rerank',modelId:'qwen3-rerank',enabled:true,expectedRevision:1}));assert.equal(calls.length,2)
+})

@@ -316,3 +316,6 @@ span:has(> [data-slot="conversation.hero.brand.mark"] .beellix-workspace-brand) 
 
 .beellix-model-service>header{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:12px 0;border-bottom:1px solid var(--dsw-alias-border-l2)}
 .beellix-model-service>header h3{margin:0;font-size:14px;font-weight:600}
+
+.beellix-model-inline-choice{font:inherit;color:inherit;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;padding:7px 10px;background:var(--dsw-alias-bg-base);width:min(100%,300px);min-width:0}
+.beellix-model-inline-choice:disabled{opacity:.5}
