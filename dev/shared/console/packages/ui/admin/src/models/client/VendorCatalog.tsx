@@ -43,10 +43,11 @@ function Badge({ active, t }: { active: boolean; t: Translate }) {
   return <span className={css['status']} data-active={active}><i aria-hidden="true" />{t(active ? 'enabledConnections' : 'disabledConnections')}</span>
 }
 /** 主模型和插件专用连接共用卡片骨架、间距及动作位置。 */
-export function CatalogVendorCard({title,identity,actions,summary,status,version,details,label}:{title:string;identity:ReactNode;actions:ReactNode;summary:ReactNode;status:ReactNode;version?:string|undefined;details:ReactNode;label?:string|undefined}){
+export function CatalogVendorCard({title,identity,actions,summary,status,version,details,label,children}:{title:string;identity:ReactNode;actions:ReactNode;summary:ReactNode;status:ReactNode;version?:string|undefined;details:ReactNode;label?:string|undefined;children?:ReactNode}){
  return <article className={css['vendorCard']} data-model-card="vendor-summary" aria-label={label}>
   <div className={css['cardTop']}>{identity}<h3>{title}</h3>{actions}</div>
   <p className={css['cardStats']}>{summary}</p>
+  {children}
   <footer>{status}{version&&<span className={css['version']}>v{version}</span>}{details}</footer>
  </article>
 }

@@ -75,3 +75,9 @@ test('专用型号由插件声明并按原修订保存；已有共用连接时�
  await service.save({pluginId:'knowledge',purposeId:'rerank',modelId:'qwen3-rerank',expectedRevision:1});await service.save({pluginId:'knowledge',purposeId:'rerank',enabled:true,expectedRevision:1});assert.equal(calls.length,2)
  await assert.rejects(service.save({pluginId:'knowledge',purposeId:'rerank',modelId:'qwen-plus',expectedRevision:1}));await assert.rejects(service.save({pluginId:'knowledge',purposeId:'rerank',modelId:'qwen3-rerank',enabled:true,expectedRevision:1}));assert.equal(calls.length,2)
 })
+
+test('必配、选配和默认策略由插件声明，四项完整投影且非法声明不进入页面',async()=>{
+ const {PluginModels}=await import(moduleUrl('plugin-models.mjs'));let required=true,defaultMode='host-main'
+ const service=new PluginModels('',{catalog:async()=>[{id:'knowledge',enabled:true,models:{purposes:[{id:'organize',required:true,default:'host-main'}]}}],models:async()=>({groups:[]}),configuration:()=>({read:async()=>({revision:0,purposes:[{id:'organize',title:'入库整理',operation:'chat',selection:null},{id:'embedding',title:'向量',operation:'embedding',required,selection:null},{id:'parser',title:'解析',operation:'parse',required:false,selection:null},{id:'rerank',title:'重排',operation:'rerank',required:false,selection:null}].map((row,i)=>i===0?{...row,default:defaultMode}:row)}),write:async()=>{}})})
+ const rows=(await service.snapshot()).plugins[0].purposes;assert.equal(rows.length,4);assert.deepEqual(rows.map(row=>row.required),[true,true,false,false]);assert.equal(rows[0].default,'host-main');required='yes';await assert.rejects(service.snapshot(),/MODEL_STATE_INVALID/);required=true;defaultMode='automatic-cloud';await assert.rejects(service.snapshot(),/MODEL_STATE_INVALID/)
+})

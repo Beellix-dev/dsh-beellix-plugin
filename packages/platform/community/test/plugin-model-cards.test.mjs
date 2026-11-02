@@ -15,109 +15,41 @@ function packedConsole(){
 }
 function packedStyles(){const prefix='const stylesheet = ',start=packedClient.indexOf(prefix);assert.ok(start>=0);return JSON.parse(packedClient.slice(start+prefix.length,packedClient.indexOf('\n',start)).trim().replace(/;$/,''))}
 
-test('插件模型页只管理连接，不展示知识库流程或错误的聊天增强；旧选择保留且可恢复主模型',async()=>{
- const browser=await chromium.launch(safeChromiumOptions({channel:'msedge',headless:true})),capture=resolve("./dev/artifacts/plugin-model-grouping-20261027/screenshots");mkdirSync(capture,{recursive:true})
+test('插件声明几项即显示几项，必配选配、型号、沿用主模型及启停复用同一模型卡片',async()=>{
+ const browser=await chromium.launch(safeChromiumOptions({channel:'msedge',headless:true})),capture=resolve(process.env.BEELLIX_PLUGIN_MODEL_CAPTURE??'./dev/artifacts/knowledge-model-declarations-20261102/screenshots');mkdirSync(capture,{recursive:true})
  try{
-  const page=await browser.newPage({viewport:{width:1440,height:950}}),errors=[]
-  page.setDefaultTimeout(4000);page.on('pageerror',e=>errors.push(e.message))
+  const page=await browser.newPage({viewport:{width:1440,height:950}}),errors=[];page.setDefaultTimeout(4000);page.on('pageerror',e=>errors.push(e.message))
   await page.route('http://plugin-cards.test/**',route=>route.fulfill({contentType:'text/html',body:'<!doctype html><html lang="zh"><meta charset="utf-8"><style>body{margin:0;font:14px system-ui}*{box-sizing:border-box}</style><div id="root" class="beellix-bootstrap beellix-console"></div></html>'}));await page.goto('http://plugin-cards.test/')
   for(const pkg of ['react','react-dom'])await page.addScriptTag({path:join(dirname(require.resolve(pkg+'/package.json')),'umd/'+pkg+'.development.js')})
   await browserModules(page);await browserTheme(page)
   if(packedClient){await page.addStyleTag({content:packedStyles()});await page.addScriptTag({content:'window.consoleModule={exports:new Function("require",'+JSON.stringify(packedConsole())+')(moduleRequire)};'})}
   else{for(const file of ['../lib/console.css','../src/style.css','../../../../dev/shared/console/section-tabs.css'])await page.addStyleTag({content:readFileSync(new URL(file,import.meta.url),'utf8')});await page.addScriptTag({content:`window.consoleModule={exports:{}};((require,module,exports)=>{${readFileSync(new URL('../lib/console-client.cjs',import.meta.url),'utf8')}\n})(moduleRequire,consoleModule,consoleModule.exports);`})}
   await page.evaluate(()=>{
-   window.calls=[];window.failWrite=false
-   const plugin=window.knowledgePlugin={id:'@beellix-ai/knowledge',title:'知识库',enabled:true,version:'0.1.1',revision:2,purposes:[{id:'parser',title:'文档解析 · MinerU',kind:'document',operation:'parse',configured:true,enabled:true,canToggle:true,connection:{kind:'api',model:'MinerU VLM',endpoint:'https://mineru.net/api/v4'},configurationPanel:'beellix-knowledge',selection:null},{id:'embedding',title:'向量检索',kind:'retrieval',operation:'embedding',configured:true,enabled:true,canToggle:true,connection:{kind:'local',model:'qwen3-embedding:0.6b'},configurationPanel:'beellix-knowledge',selection:null},{id:'rerank',title:'检索重排',kind:'retrieval',operation:'rerank',configured:false,enabled:true,canToggle:false,configurationPanel:'beellix-knowledge',selection:null}]}
-   window.modelPlugins=[plugin];window.nativeModelState={status:'ready',rows:[{entry:{provider:'deepseek',active:true},credential:{configured:true}},{entry:{provider:'blocked',active:true},credential:{configured:false}}]};const face={operations:{},models:{load:async()=>{},store:{subscribe:()=>()=>{},getSnapshot:()=>nativeModelState}}}
-   const api={read:async path=>path==='models/plugins'?{plugins:window.modelPlugins,default:{provider:'deepseek',model:'flash'},groups:[{id:'deepseek',name:'DeepSeek',models:[{id:'flash',name:'DeepSeek Flash'},{id:'pro',name:'DeepSeek Pro'}]},{id:'blocked',name:'缺少凭据的服务',models:[{id:'blocked',name:'Blocked'}]}]}:path==='models/catalog'?{items:[]}:{},mutate:async(path,input)=>{calls.push({path,input});if(failWrite){failWrite=false;throw Error('设置未保存，请重试。')}if(path==='models/plugins'){if(input.expectedRevision!==plugin.revision)throw Error('修订冲突');Object.assign(plugin.purposes.find(p=>p.id===input.purposeId),Object.hasOwn(input,'selection')?{selection:input.selection}:Object.hasOwn(input,'modelId')?{connection:{kind:'api',model:input.modelId},configured:true}:{enabled:input.enabled,...input.enabled&&input.purposeId==='rerank'?{configured:true,connection:{kind:'api',model:'qwen3-rerank'}}:{}});plugin.revision++}return{application:'applied'}}}
+   window.calls=[];window.failWrite=false;window.mainDefault={provider:'deepseek',model:'flash'}
+   window.knowledgePlugin={id:'@beellix-ai/knowledge',title:'知识库',enabled:true,revision:2,models:{purposes:[{id:'organize',required:true,default:'host-main'}]},purposes:[
+    {id:'organize',title:'入库整理',operation:'chat',required:true,default:'host-main',selection:null},
+    {id:'embedding',title:'向量检索',operation:'embedding',kind:'retrieval',required:true,configured:true,enabled:true,canToggle:true,modelOptions:['text-embedding-v4','text-embedding-v3'],connection:{kind:'api',model:'text-embedding-v4'},configurationPanel:'beellix-knowledge',selection:null},
+    {id:'parser',title:'MinerU 解析增强',operation:'parse',kind:'document',required:false,configured:false,enabled:false,canToggle:false,configurationPanel:'beellix-knowledge',selection:null},
+    {id:'rerank',title:'检索重排',operation:'rerank',kind:'retrieval',required:false,configured:false,enabled:false,canToggle:true,modelOptions:['qwen3-rerank','qwen3.7-text-rerank'],configurationPanel:'beellix-knowledge',selection:null}
+   ]};window.modelPlugins=[knowledgePlugin]
+   window.nativeModelState={status:'ready',rows:[{entry:{provider:'deepseek',active:true},credential:{configured:true}}]};const face={operations:{},models:{load:async()=>{},store:{subscribe:()=>()=>{},getSnapshot:()=>nativeModelState}}}
+   const api={read:async path=>path==='models/plugins'?{plugins:modelPlugins,default:mainDefault,groups:[{id:'deepseek',name:'DeepSeek',models:[{id:'flash',name:'DeepSeek Flash'},{id:'pro',name:'DeepSeek Pro'}]}]}:path==='models/catalog'?{items:[]}:{},mutate:async(path,input)=>{calls.push({path,input});if(failWrite){failWrite=false;throw Error('设置未保存，请重试。')}const plugin=modelPlugins.find(row=>row.id===input.pluginId);if(input.expectedRevision!==plugin.revision)throw Error('修订冲突');const purpose=plugin.purposes.find(row=>row.id===input.purposeId);if(Object.hasOwn(input,'modelId'))Object.assign(purpose,{connection:{kind:'api',model:input.modelId},configured:true});else if(Object.hasOwn(input,'selection'))purpose.selection=input.selection;else Object.assign(purpose,{enabled:input.enabled,...input.enabled?{configured:true,connection:purpose.connection??{kind:'api',model:purpose.modelOptions?.[0]}}:{}});plugin.revision++;return{application:'applied'}}}
    ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(consoleModule.exports.ConsoleContent,{tab:'models',api,modelFace:()=>face,openPanel:(panel,detail)=>calls.push({panel,detail})}))
   })
-  await page.getByRole('link',{name:'插件模型配置',exact:true}).click()
-  await page.getByRole('navigation',{name:'插件模型分组',exact:true}).waitFor()
-  await page.getByRole('button',{name:'知识库',exact:true}).waitFor()
-  for(const name of ['文档','检索','其他'])assert.equal(await page.getByRole('button',{name,exact:true}).count(),0,'模型用途不能拆成插件标签')
-  const cards=page.locator('[data-model-card="vendor-summary"]')
-  assert.equal(await cards.count(),3,'一个知识库标签下应同时展示全部用途卡片')
-  assert.equal(await page.getByRole('combobox',{name:'配置用途',exact:true}).count(),0)
-  assert.equal(await page.getByRole('button',{name:'添加模型',exact:true}).count(),0,'向量/重排不能显示创建聊天模型的无效按钮')
-  assert.equal(await page.locator('.beellix-plugin-model-connection').count(),0)
-  const embedding=page.getByRole('article',{name:'知识库 · 向量检索',exact:true}),rerank=page.getByRole('article',{name:'知识库 · 检索重排',exact:true})
-  assert.equal(await embedding.locator('[data-vendor-icon=qwen]').count(),1)
-  assert.equal(await embedding.getByRole('button',{name:'配置 知识库 · 向量检索',exact:true}).isEnabled(),true)
-  assert.equal(await rerank.getByRole('switch',{name:'启用 知识库 · 检索重排',exact:true}).isEnabled(),false)
-  await rerank.getByRole('button',{name:'配置 知识库 · 检索重排',exact:true}).click()
-  assert.deepEqual((await page.evaluate(()=>calls)).at(-1),{panel:'beellix-knowledge',detail:{capabilityId:'knowledge',title:'知识库',view:'model:rerank'}})
-  await page.screenshot({path:join(capture,'initial-light.png'),animations:'disabled'})
-  const toggle=embedding.getByRole('switch',{name:'启用 知识库 · 向量检索',exact:true})
-  await toggle.click();await page.getByRole('status').filter({hasText:'已保存'}).waitFor();assert.equal(await toggle.getAttribute('aria-checked'),'false')
-  assert.deepEqual((await page.evaluate(()=>calls)).at(-1),{path:'models/plugins',input:{pluginId:'@beellix-ai/knowledge',purposeId:'embedding',enabled:false,expectedRevision:2}})
-  await page.evaluate(()=>failWrite=true);await toggle.click();await page.getByRole('alert').filter({hasText:'设置未保存'}).waitFor();assert.equal(await toggle.getAttribute('aria-checked'),'false','写入失败不能假装开关已开启')
-  await toggle.click();await page.getByRole('status').filter({hasText:'已保存'}).waitFor();assert.equal(await toggle.getAttribute('aria-checked'),'true')
-  await embedding.getByRole('button',{name:'查看详情 知识库 · 向量检索',exact:true}).click()
-  const dialog=page.getByRole('dialog',{name:'知识库 · 向量检索',exact:true});await dialog.waitFor();assert.equal(await dialog.getByText('qwen3-embedding:0.6b',{exact:true}).count(),1);await dialog.getByRole('button',{name:'关闭',exact:true}).click()
-  await page.getByLabel('搜索厂商或模型',{exact:true}).fill('重排');assert.equal(await cards.count(),1);await page.getByLabel('搜索厂商或模型',{exact:true}).fill('')
-  await page.getByRole('combobox',{name:'状态',exact:true}).selectOption('enabled');assert.equal(await cards.count(),2);await page.getByRole('combobox',{name:'状态',exact:true}).selectOption('all')
-  for(const width of [360,1440,2560])for(const dark of [false,true]){
-   await page.setViewportSize({width,height:950});await page.evaluate(dark=>document.body.toggleAttribute('data-ds-dark-theme',dark),dark)
-   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true)
-   const boxes=await cards.evaluateAll(items=>items.map(e=>({x:e.getBoundingClientRect().x,width:e.getBoundingClientRect().width,y:e.getBoundingClientRect().y})))
-   assert.ok(width===360?boxes[0].y!==boxes[1].y:boxes[0].y===boxes[1].y,'卡片列数跟随主模型的实际布局')
-   await page.screenshot({path:join(capture,`${width}-${dark?'dark':'light'}.png`),animations:'disabled'})
-  }
-  const parser=page.getByRole('article',{name:'知识库 · 文档解析 · MinerU',exact:true})
-  assert.equal(await parser.count(),1);assert.equal(await cards.count(),3)
-  await parser.getByRole('button',{name:'配置 知识库 · 文档解析 · MinerU',exact:true}).click()
-  assert.deepEqual((await page.evaluate(()=>calls)).at(-1),{panel:'beellix-knowledge',detail:{capabilityId:'knowledge',title:'知识库',view:'model:parser'}})
-  await page.setViewportSize({width:1440,height:950});await page.screenshot({path:join(capture,'mineru-model-card.png'),animations:'disabled'})
-  await page.evaluate(()=>{knowledgePlugin.models={purposes:[{id:'organize',default:'host-main'}]};knowledgePlugin.purposes.push({id:'organize',title:'分类与知识整理',kind:'other',operation:'chat',selection:null},...Array.from({length:6},(_,i)=>({id:'extra'+i,title:'用途'+i,kind:i%2?'document':'retrieval',operation:'embedding',configured:false,configurationPanel:'beellix-knowledge'})));window.otherPlugin={id:'@beellix-ai/drawings',title:'图纸工具',enabled:false,version:'0.1.1',revision:0,purposes:[{id:'ocr',title:'图纸识别',kind:'document',operation:'parse',configured:false,configurationPanel:'beellix-drawings'}]};window.modelPlugins.push(otherPlugin)})
-  await page.getByRole('button',{name:'刷新',exact:true}).click()
-  assert.equal(await cards.count(),10,'知识库十项用途必须仍在同一个插件标签内');assert.equal(await page.getByRole('article',{name:'知识库 · 分类与知识整理',exact:true}).getByText('沿用主模型',{exact:true}).count(),1)
-  await page.evaluate(()=>document.body.removeAttribute('data-ds-dark-theme'));await page.screenshot({path:join(capture,'ten-purposes-one-plugin.png'),animations:'disabled'})
-  assert.equal(await page.getByRole('navigation',{name:'插件模型分组',exact:true}).getByRole('button').count(),2)
-  await page.getByRole('button',{name:'图纸工具',exact:true}).click();assert.equal(await cards.count(),1);assert.equal(await page.getByRole('button',{name:'配置 图纸工具 · 图纸识别',exact:true}).isDisabled(),true)
-  await page.getByRole('button',{name:'知识库',exact:true}).click();assert.equal(await cards.count(),10)
-  await page.evaluate(()=>knowledgePlugin.enabled=false);await page.getByRole('button',{name:'刷新',exact:true}).click()
-  assert.equal(await toggle.isEnabled(),false);assert.equal(await embedding.getByRole('button',{name:'配置 知识库 · 向量检索',exact:true}).isEnabled(),false)
-  assert.equal((await page.evaluate(()=>calls)).filter(r=>['models/enabled','models/selection'].includes(r.path)).length,0)
-  await page.evaluate(()=>{knowledgePlugin.enabled=true;knowledgePlugin.models.purposes.push({id:'embedding',required:true},{id:'rerank',required:false},{id:'parser',required:false});knowledgePlugin.purposes=knowledgePlugin.purposes.filter(p=>['organize','parser','embedding','rerank'].includes(p.id));modelPlugins=[knowledgePlugin];knowledgePlugin.configurationGroups=[{id:'ingestion',title:'入库处理',description:'所有入口共用的解析与整理。',purposeIds:['organize','parser']},{id:'retrieval',title:'检索与重排',description:'统一向量检索与可选重排。',purposeIds:['embedding','rerank']}]})
-  await page.getByRole('button',{name:'刷新',exact:true}).click();assert.equal(await cards.count(),0)
-  const connections=page.getByRole('region',{name:'知识库模型连接',exact:true});await connections.waitFor()
-  assert.equal(await page.getByRole('navigation',{name:'模型方案',exact:true}).count(),0)
-  for(const name of ['入库处理','检索与重排'])assert.equal(await page.getByRole('button',{name,exact:true}).count(),0,'流程配置不应出现在插件模型页')
-  assert.equal(await page.getByRole('switch',{name:'启用增强模型',exact:true}).count(),0,'MinerU才是解析增强，不应创建另一个聊天增强模型')
-  assert.equal(await page.getByRole('combobox',{name:'增强模型',exact:true}).count(),0)
-  assert.equal(await connections.locator('details,summary').count(),0)
-  assert.equal(await connections.getByRole('region').count(),3,'沿用DSH主模型不重复变成插件连接')
-  for(const id of ['parser','embedding','rerank']){
-   const purpose=await page.evaluate(id=>knowledgePlugin.purposes.find(p=>p.id===id),id)
-   await connections.getByRole('button',{name:'配置 知识库 · '+purpose.title,exact:true}).click()
-   assert.equal((await page.evaluate(()=>calls)).at(-1).detail.view,'model:'+id)
-  }
-  const vector=connections.getByRole('switch',{name:'启用 知识库 · 向量检索',exact:true}),was=await vector.getAttribute('aria-checked')
-  await vector.click();await page.waitForFunction(was=>String(knowledgePlugin.purposes.find(p=>p.id==='embedding').enabled)!==was,was)
-  await page.getByRole('status').filter({hasText:'已保存'}).waitFor()
-  await vector.click();await page.waitForFunction(was=>String(knowledgePlugin.purposes.find(p=>p.id==='embedding').enabled)===was,was)
-  await page.evaluate(()=>{knowledgePlugin.purposes.find(p=>p.id==='organize').selection={provider:'deepseek',model:'pro'}})
-  await page.getByRole('button',{name:'刷新',exact:true}).click()
-  assert.equal(await connections.getByText('DeepSeek Pro',{exact:true}).count(),1,'旧的显式整理模型仍可见，不被静默删除')
-  await connections.getByRole('button',{name:'恢复DSH主模型',exact:true}).click();await page.waitForFunction(()=>knowledgePlugin.purposes.find(p=>p.id==='organize').selection===null)
-  await page.getByRole('status').filter({hasText:'已保存'}).waitFor({state:'hidden',timeout:5000})
-  await page.evaluate(()=>{knowledgePlugin.configurationGroups=[{id:'qwen',kind:'connection',title:'Qwen API',description:'百炼连接',purposeIds:['embedding','rerank']},{id:'parser',kind:'connection',title:'MinerU',description:'解析连接',purposeIds:['parser']},{id:'organize',kind:'connection',title:'知识整理',description:'DSH主模型',purposeIds:['organize']}]})
-  await page.getByRole('button',{name:'刷新',exact:true}).click()
-  assert.equal(await connections.getByRole('button',{name:'配置 Qwen API',exact:true}).count(),1,'同一个Qwen服务只提供一个连接配置入口')
-  assert.equal(await connections.getByRole('button',{name:'配置 知识库 · 向量检索',exact:true}).count(),0)
-  await connections.getByRole('button',{name:'配置 Qwen API',exact:true}).click();assert.equal((await page.evaluate(()=>calls)).at(-1).detail.view,'model:embedding')
-  await page.evaluate(()=>{Object.assign(knowledgePlugin.purposes.find(p=>p.id==='rerank'),{modelOptions:['qwen3-rerank','qwen3.7-text-rerank'],canToggle:true,configured:false,enabled:false})})
-  await page.getByRole('button',{name:'刷新',exact:true}).click();const rankSwitch=connections.getByRole('switch',{name:'启用 知识库 · 检索重排',exact:true}),rankChoice=connections.getByRole('combobox',{name:'知识库 · 检索重排模型',exact:true})
-  assert.equal(await rankSwitch.isEnabled(),true,'已有服务密钥时未配置重排也能直接开启');assert.equal(await rankChoice.inputValue(),'qwen3-rerank');await rankSwitch.click();await page.waitForFunction(()=>knowledgePlugin.purposes.find(p=>p.id==='rerank').enabled===true);await rankChoice.selectOption('qwen3.7-text-rerank');await page.waitForFunction(()=>knowledgePlugin.purposes.find(p=>p.id==='rerank').connection.model==='qwen3.7-text-rerank');assert.equal(await rankChoice.inputValue(),'qwen3.7-text-rerank')
-  await page.evaluate(()=>Object.assign(knowledgePlugin.purposes.find(p=>p.id==='rerank'),{canToggle:false,configured:false}));await page.getByRole('button',{name:'刷新',exact:true}).click();assert.equal(await rankSwitch.isEnabled(),true,'没有密钥时点击开关进入连接配置');await rankSwitch.click();assert.equal((await page.evaluate(()=>calls)).at(-1).detail.view,'model:rerank:enable')
-  await page.evaluate(()=>{Object.assign(knowledgePlugin.purposes.find(p=>p.id==='rerank'),{canToggle:true,configured:true,enabled:false});Object.assign(knowledgePlugin.purposes.find(p=>p.id==='embedding'),{connection:{kind:'api',model:'text-embedding-v4'},modelOptions:['text-embedding-v4','text-embedding-v3']})});await page.getByRole('button',{name:'刷新',exact:true}).click()
-  const captureConnections=resolve(process.env.BEELLIX_PLUGIN_MODEL_CAPTURE??'./dev/artifacts/knowledge-model-inline-20261102/screenshots');mkdirSync(captureConnections,{recursive:true})
-  for(const width of [360,1440])for(const dark of [false,true]){
-   await page.setViewportSize({width,height:950});await page.evaluate(value=>document.body.toggleAttribute('data-ds-dark-theme',value),dark)
-   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true)
-   await page.screenshot({path:join(captureConnections,`connections-${width}-${dark?'dark':'light'}.png`),animations:'disabled'})
-  }
-  assert.deepEqual(errors,[])
+  await page.getByRole('link',{name:'插件模型配置',exact:true}).click();const cards=page.locator('[data-model-card="vendor-summary"]');await page.getByRole('button',{name:'知识库',exact:true}).waitFor()
+  assert.equal(await cards.count(),4,'四项模型声明必须完整显示，沿用主模型也保留该配置项');assert.equal(await cards.getByText('必配',{exact:true}).count(),2);assert.equal(await cards.getByText('选配',{exact:true}).count(),2)
+  for(const name of ['Qwen API','入库处理','检索与重排'])assert.equal(await page.getByRole('heading',{name,exact:true}).count(),0)
+  const organizer=page.getByRole('article',{name:'知识库 · 入库整理',exact:true}),rerank=page.getByRole('article',{name:'知识库 · 检索重排',exact:true}),vector=page.getByRole('article',{name:'知识库 · 向量检索',exact:true})
+  assert.equal(await organizer.getByText('DeepSeek Flash',{exact:true}).count(),1);assert.equal(await organizer.getByText('沿用主模型',{exact:true}).count(),1)
+  await organizer.getByRole('button',{name:'选择模型 知识库 · 入库整理',exact:true}).click();await page.getByRole('button',{name:'返回插件模型',exact:true}).click()
+  const choose=rerank.getByRole('combobox',{name:'知识库 · 检索重排模型',exact:true}),toggle=rerank.getByRole('switch',{name:'启用 知识库 · 检索重排',exact:true});assert.equal(await choose.inputValue(),'qwen3-rerank');assert.equal(await toggle.isEnabled(),true)
+  await toggle.click();await page.waitForFunction(()=>knowledgePlugin.purposes.find(p=>p.id==='rerank').enabled===true);await choose.selectOption('qwen3.7-text-rerank');await page.waitForFunction(()=>knowledgePlugin.purposes.find(p=>p.id==='rerank').connection.model==='qwen3.7-text-rerank')
+  await page.evaluate(()=>failWrite=true);await choose.selectOption('qwen3-rerank');await page.getByRole('alert').filter({hasText:'设置未保存'}).waitFor();assert.equal(await choose.inputValue(),'qwen3.7-text-rerank','失败保持原型号')
+  await vector.getByRole('button',{name:'配置 知识库 · 向量检索',exact:true}).click();assert.equal((await page.evaluate(()=>calls)).at(-1).detail.view,'model:embedding')
+  await page.evaluate(()=>{knowledgePlugin.purposes.find(p=>p.id==='organize').selection={provider:'deepseek',model:'pro'};Object.assign(knowledgePlugin.purposes.find(p=>p.id==='rerank'),{configured:false,canToggle:false})});await page.getByRole('button',{name:'刷新',exact:true}).click();await organizer.getByRole('button',{name:'恢复DSH主模型',exact:true}).click();await page.waitForFunction(()=>knowledgePlugin.purposes[0].selection===null);await toggle.click();assert.equal((await page.evaluate(()=>calls)).at(-1).detail.view,'model:rerank:enable')
+  await page.evaluate(()=>{knowledgePlugin.purposes.push({id:'custom',title:'合同识别服务',operation:'parse',required:true,configured:false,configurationPanel:'beellix-knowledge'});Object.assign(knowledgePlugin.purposes.find(p=>p.id==='rerank'),{configured:true,canToggle:true});});await page.getByRole('button',{name:'刷新',exact:true}).click();assert.equal(await cards.count(),5);assert.equal(await page.getByRole('heading',{name:'合同识别服务',exact:true}).count(),1,'中台不把第三方解析用途改名为MinerU');assert.equal(await cards.getByText('必配',{exact:true}).count(),3)
+  await page.evaluate(()=>knowledgePlugin.purposes.pop());await page.getByRole('button',{name:'刷新',exact:true}).click()
+  for(const width of [360,1440,2560])for(const dark of [false,true]){await page.setViewportSize({width,height:950});await page.evaluate(value=>document.body.toggleAttribute('data-ds-dark-theme',value),dark);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),true);await page.screenshot({path:join(capture,`models-${width}-${dark?'dark':'light'}.png`),animations:'disabled'})}
+  await page.evaluate(()=>knowledgePlugin.enabled=false);await page.getByRole('button',{name:'刷新',exact:true}).click();assert.equal(await choose.isDisabled(),true);assert.equal(await toggle.isDisabled(),true);assert.deepEqual(errors,[])
  }finally{await browser.close()}
 })
