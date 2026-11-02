@@ -307,3 +307,5 @@ span:has(> [data-slot="conversation.hero.brand.mark"] .beellix-workspace-brand) 
 .beellix-model-purpose-value select{width:100%;min-width:0;min-height:36px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base);color:inherit;font:inherit;padding:7px 10px}
 .beellix-model-purpose-value select:disabled{opacity:.5;cursor:default}
 .beellix-model-reset{padding:0;border:0;background:transparent;color:var(--dsw-alias-brand-text);font:inherit;cursor:pointer}
+.beellix-model-purpose-icon{display:grid;place-items:center;flex:none;width:32px;height:32px;border-radius:9px;color:var(--dsw-alias-label-primary);background:var(--dsw-alias-bg-module-platform)}
+.beellix-model-purpose-icon svg{display:block}

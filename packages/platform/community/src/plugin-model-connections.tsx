@@ -1,9 +1,8 @@
 import React from 'react'
 import {Switch} from '@beellix-ai/ui-components'
 import {CatalogVendorCard} from "../../../../dev/shared/console/packages/ui/admin/src/models/client/VendorCatalog.tsx"
-import {Mark} from "../../../../dev/shared/console/packages/ui/admin/src/models/client/CatalogModelCard.tsx"
 import css from "../../../../dev/shared/console/packages/ui/admin/src/models/client/VendorCatalog.module.css"
-import {ConsoleIcon} from './console-icons.mjs'
+import {ModelPurposeIcon} from './model-purpose-icon.tsx'
 
 const chat=(row:any)=>!row.purpose.operation||row.purpose.operation==='chat'
 const title=(row:any)=>row.title+' · '+row.purpose.title
@@ -19,7 +18,7 @@ export function PluginModelConnections({items,groups=[],defaultSelection,busy,on
   const save=(change:any)=>onSave({pluginId:row.id,purposeId:purpose.id,...change,expectedRevision:row.revision})
   const toggleAvailable=purpose.canToggle||!configured&&configAvailable
   return <CatalogVendorCard key={row.id+':'+purpose.id} label={title(row)} title={purpose.title}
-   identity={provider?<Mark id={provider.id}/>:<span className={css.mark}><ConsoleIcon kind="resources"/></span>}
+   identity={<ModelPurposeIcon operation={purpose.operation}/>}
    actions={<div className={css.headerActions}><button type="button" aria-label={(chat(row)?'选择模型 ':'配置 ')+title(row)} disabled={busy||!row.enabled||!configAvailable} onClick={configure}>{chat(row)?'选择模型':'配置'}</button>{!chat(row)&&<Switch label={'启用 '+title(row)} checked={!!active} disabled={busy||!row.enabled||!toggleAvailable} title={!toggleAvailable?'此插件未提供模型启停':undefined} onChange={enabled=>purpose.canToggle?save({enabled}):onConfigure(purpose.configurationPanel,{capabilityId:row.id.split('/').at(-1),title:row.title,view:'model:'+purpose.id+':enable'})}/>}</div>}
    summary={<><span className="beellix-model-requirement" data-required={required}>{required?'必配':'选配'}</span>{chat(row)&&inherits&&!purpose.selection&&<span>沿用主模型</span>}</>}
    status={<span className={css.status} data-active={!!active}><i aria-hidden="true"/>{!row.enabled?'插件已停用':!configured?'待配置':active?'已启用':'已关闭'}</span>}
