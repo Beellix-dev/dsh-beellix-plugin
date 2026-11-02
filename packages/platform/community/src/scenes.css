@@ -33,8 +33,13 @@
 .beellix-scenes .beellix-scene-row-icon:hover{color:var(--dsw-alias-label-primary,CanvasText);background:transparent}
 .beellix-scene-new{color:var(--dsw-alias-label-secondary,GrayText)!important}
 .beellix-scene-running{width:6px;height:6px;border-radius:50%;background:var(--dsw-alias-state-business-primary,Highlight);flex:none}
-.beellix-scene-empty{padding:30px 8px;text-align:center;color:var(--dsw-alias-label-secondary,GrayText)}
-.beellix-scene-empty>svg{opacity:.7}.beellix-scene-empty p{line-height:1.6;margin:12px 0}.beellix-scene-empty button{padding:7px 10px;color:var(--dsw-alias-label-primary,CanvasText)}
+.beellix-scene-empty{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:24px 12px;color:var(--dsw-alias-label-secondary,GrayText)}
+.beellix-scene-empty>svg{margin-bottom:4px;color:var(--dsw-alias-label-tertiary,GrayText)}
+.beellix-scene-empty strong{font-size:14px;line-height:20px;font-weight:550;color:var(--dsw-alias-label-primary,CanvasText)}
+.beellix-scene-empty p{font-size:13px;line-height:20px;margin:0;text-wrap:pretty}
+.beellix-scene-empty :is(a,button){display:inline-flex;align-items:center;min-height:32px;box-sizing:border-box;margin-top:4px;padding:6px 10px;border:1px solid var(--dsw-alias-border-l2,ButtonBorder);border-radius:6px;font:inherit;line-height:18px;text-decoration:none;color:var(--dsw-alias-label-primary,CanvasText);background:transparent;cursor:pointer}
+.beellix-scene-empty :is(a,button):hover{background:var(--dsw-alias-interactive-bg-hover,ButtonFace)}
+.beellix-scene-empty :is(a,button):focus-visible{outline:2px solid var(--dsw-alias-brand-primary,Highlight);outline-offset:2px}
 .beellix-scene-picker{padding:8px;margin:4px 0 8px;border:1px solid var(--dsw-alias-border-l2,GrayText);border-radius:10px;background:var(--dsw-alias-bg-base,Canvas)}
 .beellix-scene-picker>header{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:5px}.beellix-scene-picker strong{font-weight:550}.beellix-scene-picker p{line-height:1.6;margin:8px 3px;color:var(--dsw-alias-label-secondary,GrayText)}
 .beellix-scene-choice{display:flex;align-items:center;gap:8px;width:100%;padding:8px 4px;text-align:left}.beellix-scene-choice>span{flex:1;min-width:0}.beellix-scene-choice small{display:block;font-size:11px;color:var(--dsw-alias-label-secondary,GrayText);margin-top:3px}.beellix-scene-text{padding:7px 4px;font-size:12px!important}

@@ -40,6 +40,31 @@ test('首次初始化在安装目录下创建完整配套结构，重复初始�
   assert.deepEqual(environment.dependencies, {})
 })
 
+test('宿主启动自动初始化安全的新目录，重复启动保留实例和已有资料', async () => {
+  const f = fixture()
+  const first = await f.store.prepare()
+  assert.equal(first.status, 'ready')
+  assert.equal(first.root, join(f.installationDirectory, 'Beellix'))
+  writeFileSync(join(first.root, 'data/retained.txt'), 'keep')
+  const reopened = new LayoutStore(f)
+  assert.equal((await reopened.prepare()).instanceId, first.instanceId)
+  assert.equal(readFileSync(join(first.root, 'data/retained.txt'), 'utf8'), 'keep')
+  assert.deepEqual(readdirSync(f.installationDirectory).sort(), ['Beellix', 'DSH NEXT.exe', 'resources'])
+})
+
+test('启动自动接续空骨架，但不覆盖未知内容、不补造丢失的应用登记', async () => {
+  const f = fixture()
+  mkdirSync(join(f.store.root, 'config/control-plane'), {recursive:true})
+  assert.equal((await f.store.prepare()).status, 'ready')
+  renameSync(join(f.store.root, 'registry.json'), join(f.store.root, 'registry.saved.json'))
+  assert.equal((await f.store.prepare()).status, 'incomplete')
+  assert.equal(existsSync(join(f.store.root, 'registry.json')), false)
+  const blocked = fixture()
+  mkdirSync(blocked.store.root);writeFileSync(join(blocked.store.root, 'retained.txt'), 'keep')
+  await assert.rejects(blocked.store.prepare(), /已有内容/)
+  assert.equal(readFileSync(join(blocked.store.root, 'retained.txt'), 'utf8'), 'keep')
+})
+
 test('拒绝占用已有非空目录，不认领或覆盖用户文件', async () => {
   const f = fixture(), root = join(f.installationDirectory, 'Beellix')
   mkdirSync(root); writeFileSync(join(root, '已有文件.txt'), 'keep')

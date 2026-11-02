@@ -7,6 +7,7 @@ import {Modal,Menu,Tooltip,StateDot,IconEllipsisOutlineRegular,IconNewChatOutlin
 import {ConsoleIcon} from './console-icons.mjs'
 import {isSessionRecord,sceneSessionRows} from './session-records.mjs'
 import {startupTarget} from './startup-policy.mjs'
+import {PLUGIN_DISCOVERY_URL} from './discovery.mjs'
 const EMPTY_WORKSPACES=Object.freeze({archivedSessionIds:[]})
 const EMPTY_COMPATIBILITY=Object.freeze({issues:[]})
 const EMPTY_PREFERENCES=Object.freeze({ready:true,value:{startup:'last'}})
@@ -108,7 +109,7 @@ export function SceneNavigation({ctx,prepare,setSceneView,useSidebarMounted,useS
         else await startWorkspaceSession()
       }else{
         const scene=scenes.find(row=>row.id===(selected??state?.links[current]))??scenes[0]
-        if(!scene){void showPicker();return}
+        if(!scene){setMode('scenes');setPicker(false);setError('');return}
         if(!scene.enabled)throw Error('请先在 Beelli X 中台启用该场景')
         const row=rows.find(row=>state?.links[row.id]===scene.id&&!state.recoveries?.[row.id])
         if(row){if(!await reconnect(scene,row.id))return}else if(!await create(scene.id))return
@@ -116,7 +117,7 @@ export function SceneNavigation({ctx,prepare,setSceneView,useSidebarMounted,useS
       setMode(value);setError('')
     }catch(error){setError(error.message)}finally{navigating.current=false;setBusy(false)}
   }
-  async function showPicker(){setPicker(true);setPickerQuery('');setPickerLoading(true);try{await reload()}catch(e){setError(e.message)}finally{setPickerLoading(false)}}
+  async function showPicker(){setPickerQuery('');setPickerLoading(true);try{const snapshot=await reload();if(!snapshot.installed?.length){setPicker(false);window.open(PLUGIN_DISCOVERY_URL,'_blank','noopener,noreferrer');return}setPicker(true)}catch(e){setError(e.message)}finally{setPickerLoading(false)}}
   async function removeScene(scene){if(busy)return;setBusy(true);try{const value=await api('remove',{token:state.csrfToken,input:{sceneId:scene.id,expectedRevision:state.revision}});setState({...value,csrfToken:state.csrfToken});if(selected===scene.id)setSelected(null);setError('')}catch(e){setError(e.message)}finally{setBusy(false)}}
   async function chooseScene(scene){
     if(busy||pickerLoading||!scene.enabled)return
@@ -161,10 +162,10 @@ export function SceneNavigation({ctx,prepare,setSceneView,useSidebarMounted,useS
     const value=await api('reconnect-session',{token:state.csrfToken,input:recovery.current});recovery.current=null;await reload();open(value.sessionId,scene);return true
   }catch(e){setError('记录尚未接回：'+e.message);return false}finally{setBusy(false)}}
   const installed=(state?.installed??[]).filter(scene=>(scene.title+' '+scene.id).toLocaleLowerCase().includes(pickerQuery.trim().toLocaleLowerCase()))
-  const head=h('div',{className:'beellix-scene-heading'},h('div',{className:'beellix-scene-switch',role:'group','aria-label':'左侧目录类型'},...['workspace','scenes'].map(value=>h('button',{key:value,type:'button',disabled:busy||value==='scenes'&&!state,'aria-pressed':effectiveMode===value,onClick:()=>void switchView(value)},value==='workspace'?'工作区':'场景'))),effectiveMode==='scenes'?h('button',{type:'button',className:'beellix-scene-icon','aria-label':'添加已安装场景',title:'添加已安装场景',onClick:()=>void showPicker()},h(Icon,{kind:'plus'})):null)
+  const head=h('div',{className:'beellix-scene-heading'},h('div',{className:'beellix-scene-switch',role:'group','aria-label':'左侧目录类型'},...['workspace','scenes'].map(value=>h('button',{key:value,type:'button',disabled:busy||value==='scenes'&&!state,'aria-pressed':effectiveMode===value,onClick:()=>void switchView(value)},value==='workspace'?'工作区':'场景'))),effectiveMode==='scenes'&&state?.installed?.length?h('button',{type:'button',className:'beellix-scene-icon','aria-label':'添加已安装场景',title:'添加已安装场景',onClick:()=>void showPicker()},h(Icon,{kind:'plus'})):null)
   const body=h('div',{className:'beellix-scenes'},error?h('div',{role:'alert',className:'beellix-scene-error'},h('p',{},error),h('button',{onClick:()=>void reload().catch(e=>setError(e.message))},'重试')):null,
     !state&&!error?h('p',{className:'beellix-scene-hint'},'正在读取场景…'):null,
-    state&&!scenes.length?h('div',{className:'beellix-scene-empty'},h(Icon,{kind:'folder',size:28}),h('p',{},'添加场景，开始专属对话'),h('button',{onClick:()=>void showPicker()},'添加已安装场景')):null,
+    state&&!scenes.length?h('div',{className:'beellix-scene-empty'},h(Icon,{kind:'folder',size:24}),h('strong',{},state.installed?.length?'添加你的第一个场景':'还没有场景'),h('p',{},state.installed?.length?'选择已安装的场景，开始专属对话。':'安装场景后，在这里开始专属对话。'),state.installed?.length?h('button',{type:'button',onClick:()=>void showPicker()},'添加已安装场景'):h('a',{href:PLUGIN_DISCOVERY_URL,target:'_blank',rel:'noopener noreferrer'},'安装场景')):null,
     h('div',{role:'tree','aria-label':'场景及会话',className:'beellix-scene-tree',onKeyDown:event=>{if(!['ArrowDown','ArrowUp'].includes(event.key))return;const rows=[...event.currentTarget.querySelectorAll('button[role="treeitem"]')],index=rows.indexOf(document.activeElement);if(index<0)return;event.preventDefault();rows[(index+(event.key==='ArrowDown'?1:-1)+rows.length)%rows.length]?.focus()}},...scenes.map(scene=>{
       const rows=sceneSessionRows(sessions,state,scene.id,{current,archived})
       const retained=(state.retainedSessionIds??[]).filter(id=>state.links[id]===scene.id&&!sessions.byId[id]&&!state.recoveries?.[id]&&!archived.has(id))

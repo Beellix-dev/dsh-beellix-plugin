@@ -112,7 +112,7 @@ Harness 运行上下文与持久化业务数据分别管理。任务按需获取
 https://github.com/Beellix-dev/dsh-beellix-plugin
 ```
 
-完成安装后，从 **更多 → Beelli X 中台** 进入，初始化或选择已有资料目录，配置模型并按需接入插件。
+安装启用后自动初始化安全的新资料目录。从 **更多 → Beelli X 中台** 查看目录状态、选择已有资料目录，配置模型并按需安装插件；发现插件进入官网市场。
 
 安装渠道、环境要求和操作步骤见[快速开始](https://github.com/Beellix-dev/dsh-beellix-plugin/blob/main/docs/getting-started.md)。兼容范围与测试记录见[验证说明](https://github.com/Beellix-dev/dsh-beellix-plugin/blob/main/docs/verification.md)。
 
