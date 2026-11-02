@@ -300,3 +300,5 @@ span:has(> [data-slot="conversation.hero.brand.mark"] .beellix-workspace-brand) 
 .beellix-startup-landing button:hover{background:var(--dsw-alias-interactive-bg-hover)}
 .beellix-startup-landing button:focus-visible{outline:2px solid var(--dsw-alias-state-business-primary);outline-offset:2px}
 @media(max-width:480px){.beellix-client-setting-row{flex-wrap:wrap;gap:12px}.beellix-client-setting-error{flex-wrap:wrap}}
+.beellix-self-update{display:flex;align-items:center;gap:.625rem;flex-wrap:wrap;min-width:0}
+.beellix-self-update>span{color:var(--dsw-alias-label-secondary,GrayText);font-size:.875em;max-width:24rem}

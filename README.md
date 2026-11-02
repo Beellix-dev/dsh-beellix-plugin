@@ -147,3 +147,7 @@ https://github.com/Beellix-dev/dsh-beellix-plugin
 本项目采用 [MIT](LICENSE) 许可证。第三方代码与素材遵循其原有许可及署名要求，详见[第三方声明](THIRD_PARTY_NOTICES.md)。
 
 安全问题请通过[安全报告入口](https://github.com/Beellix-dev/dsh-beellix-plugin/blob/main/SECURITY.md)反馈。
+
+## 中台入口更新
+
+从官方 GitHub 仓库安装的中台，可在首页点击“检查更新”，发现内容变化后点击“立即更新”，校验完成后保存工作并点击“重启生效”。同为0.1.1时也能识别内容更新，无需先卸载。沿 DSH 桌面公开 CLI 和原生锁维护当前包，不改业务资料或其他插件。其他安装来源不会自动切换。此功能与业务插件的官网更新服务分别提供。

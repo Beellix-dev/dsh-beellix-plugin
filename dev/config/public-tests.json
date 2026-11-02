@@ -55,5 +55,8 @@
   "knowledge-switch.test.mjs",
   "model-card-details-browser.test.mjs",
   "workspace-scope-browser.test.mjs",
-  "scene-sidebar.test.mjs"
+  "scene-sidebar.test.mjs",
+  "self-update.test.mjs",
+  "self-update-api.test.mjs",
+  "self-update-browser.test.mjs"
 ]

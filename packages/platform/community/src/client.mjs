@@ -75,6 +75,7 @@ export function apply(ctx) {
   const accountRead=async(signal)=>{const response=await fetch(new URL('/beellix/account/state',document.baseURI),{credentials:'same-origin',cache:'no-store',signal});const value=await response.json();if(!response.ok)throw Error(value.message??'账号状态暂不可用');return value}
   const accountApi={read:accountRead,mutate:async(action,input,signal)=>{const state=await accountRead(signal),response=await fetch(new URL('/beellix/account/'+action,document.baseURI),{method:'POST',credentials:'same-origin',signal,headers:{'content-type':'application/json','x-beellix-account-token':state.csrfToken},body:JSON.stringify(input)});const value=await response.json();if(!response.ok)throw Error(value.message??'账号操作未完成');return value}}
   const callbacks = {
+    selfUpdateApi:{read:signal=>request('update/state',{signal}),mutate:async(action,input)=>{const state=await request('update/state');return request('update/'+action,{method:'POST',headers:{'content-type':'application/json','x-beellix-bootstrap-token':state.csrfToken},body:JSON.stringify(input)})}},
     accountApi,openAccountWebsite:url=>window.open(url,'_blank','noopener,noreferrer'),
     consoleApi,
     modelFace: () => modelFace ??= createConsoleFace(ctx),

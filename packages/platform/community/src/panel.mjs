@@ -3,6 +3,7 @@ import {OperationFeedback} from "../../../../dev/shared/console/operation-feedba
 import React, { useEffect, useRef, useState } from 'react'
 import {ConsoleGlyph} from './console-icons.mjs'
 import {AccountControl} from './account-control.mjs'
+import {SelfUpdateControl} from './self-update-control.mjs'
 const h = React.createElement
 
 export const zh = {
@@ -34,7 +35,7 @@ export function BrandIcon({ size = 24 } = {}) {
     h('path', { d: 'm16 16 11-6v12l-16 9V19l5-3Z', fill: '#ff7b26' }))
 }
 
-export function BootstrapView({ snapshot, busy = false, error, notice, onNoticeDone,onErrorDone,onInitialize, onRefresh, onCopy, onPlugins, onReconnect,onChoose, accountApi,openAccountWebsite,t, children }) {
+export function BootstrapView({ snapshot, busy = false, error, notice, onNoticeDone,onErrorDone,onInitialize, onRefresh, onCopy, onPlugins, onReconnect,onChoose, accountApi,selfUpdateApi,openAccountWebsite,t, children }) {
   const status = snapshot?.status ?? (error ? 'unavailable' : 'loading'), ready = status === 'ready'
   const applications = snapshot?.applications
   const appNeedsAction = ['pending', 'needs-repair', 'failed'].includes(applications?.status) && !applications?.restartRequired
@@ -46,7 +47,7 @@ export function BootstrapView({ snapshot, busy = false, error, notice, onNoticeD
     h('div', { className: 'beellix-bootstrap__page' },
       h('header', { className: 'beellix-bootstrap__header' },
         h('div', { className: 'beellix-bootstrap__brand' }, h(BrandIcon, { size: 30 }), h('h1', null, 'Beelli ', h('span', null, 'X'), ' ', t('home')), snapshot?.version && h('small', { className: 'beellix-bootstrap__version' }, 'v', snapshot.version)),
-        h('div',{className:'beellix-home-actions'},accountApi&&h(AccountControl,{api:accountApi,openWebsite:openAccountWebsite}),button(t('refresh'), onRefresh))),
+        h('div',{className:'beellix-home-actions'},selfUpdateApi&&h(SelfUpdateControl,{api:selfUpdateApi,english:globalThis.document?.documentElement?.lang?.startsWith('en')===true}),accountApi&&h(AccountControl,{api:accountApi,openWebsite:openAccountWebsite}),button(t('refresh'), onRefresh))),
       h(OperationFeedback,{error,notice,onNoticeDone,onErrorDone}),
       appNotice && h('div', { className: 'beellix-bootstrap__notice beellix-home-app-notice', role: appNeedsAction ? 'alert' : 'status' },
         h('span', null, applications.message || t(applications.restartRequired ? 'restart' : `app.${applications.status}`)),
@@ -65,7 +66,7 @@ export function BootstrapView({ snapshot, busy = false, error, notice, onNoticeD
         h('div', { className: 'beellix-bootstrap__grid' }, ...(snapshot?.directories ?? []).map(item => h('div', { className: 'beellix-bootstrap__directory', key: item.path }, h('div', null, h('strong', null, t(`dir.${item.path}`)), h('code', null, item.path + '/')), h('span', { 'data-ready': item.exists }, t(item.exists ? 'exists' : 'missing'))))))))
 }
 
-export function BootstrapPanel({ readState, initializeDirectories, reconnectApplications,chooseDirectory, openPlugins, copyPath, accountApi,openAccountWebsite,t, children }) {
+export function BootstrapPanel({ readState, initializeDirectories, reconnectApplications,chooseDirectory, openPlugins, copyPath, accountApi,selfUpdateApi,openAccountWebsite,t, children }) {
   const [snapshot, setSnapshot] = useState(null), [busy, setBusy] = useState(true), [error, setError] = useState(''), [notice, setNotice] = useState('')
   const active = useRef(null)
   useEffect(() => {
@@ -96,5 +97,5 @@ export function BootstrapPanel({ readState, initializeDirectories, reconnectAppl
     catch(failure){if(!controller.signal.aborted)setError(failure.message)}finally{if(!controller.signal.aborted)setBusy(false)}
   }
   const choose=async()=>{if(busy)return;const controller=new AbortController();active.current=controller;setBusy(true);setError('');try{const value=await chooseDirectory(controller.signal);if(!controller.signal.aborted)setSnapshot(value)}catch(failure){if(!controller.signal.aborted)setError(failure.message)}finally{if(!controller.signal.aborted)setBusy(false)}}
-  return h(BootstrapView, { snapshot, busy, error, notice,onNoticeDone:()=>setNotice(''),onErrorDone:()=>setError(''), onInitialize: initialize, onRefresh: refresh, onCopy: copy, onPlugins: openPlugins, onReconnect:reconnectApplications?reconnect:undefined,onChoose:chooseDirectory?choose:undefined, accountApi,openAccountWebsite,t }, children)
+  return h(BootstrapView, { snapshot, busy, error, notice,onNoticeDone:()=>setNotice(''),onErrorDone:()=>setError(''), onInitialize: initialize, onRefresh: refresh, onCopy: copy, onPlugins: openPlugins, onReconnect:reconnectApplications?reconnect:undefined,onChoose:chooseDirectory?choose:undefined, accountApi,selfUpdateApi,openAccountWebsite,t }, children)
 }
