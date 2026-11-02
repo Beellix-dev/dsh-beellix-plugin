@@ -35,21 +35,18 @@ function IngestionModelForm({row,groups,defaultSelection,busy,onSave,onMainModel
 }
 
 export function PluginModelPlan({group,items,groups=[],defaultSelection,busy,onSave,onConfigure,onMainModels}:any){
- const optional=(row:any)=>row.models?.purposes?.find((purpose:any)=>purpose.id===row.purpose.id)?.required===false
- const main=items.filter((row:any)=>!optional(row)),extra=items.filter(optional)
  const render=(row:any)=>{
   if(chat(row))return <IngestionModelForm key={key(row)} row={row} groups={groups} defaultSelection={defaultSelection} busy={busy} onSave={onSave} onMainModels={onMainModels}/>
   const purpose=row.purpose,ready=configured(row),toggleReason=!row.enabled?'请先启用插件':!ready?'配置完成后可启用':!purpose.canToggle?'此能力不支持独立启停':undefined
   const name=purpose.operation==='parse'?'MinerU':purpose.connection?.model??'尚未配置'
   const description=purpose.operation==='embedding'?'资料索引与查询共用此向量模型。':purpose.operation==='rerank'?'对召回结果进一步排序，未启用时使用原检索排序。':'启用后，适用的 PDF、Word、PPT 和图片上传至 MinerU 解析。'
   return <section className="beellix-model-plan-row" key={key(row)} aria-label={purpose.title}>
-   <div className="beellix-model-plan-copy"><h3 title={description}>{purpose.operation==='parse'?'MinerU':purpose.title}</h3>{purpose.operation==='parse'&&<p>{description}</p>}</div><span className="beellix-model-plan-name" title={purpose.connection?.endpoint}>{purpose.operation==='parse'?purpose.enabled===false?'当前使用本地解析':status(row):name}</span>
+   <div className="beellix-model-plan-copy"><h3 title={description}>{purpose.operation==='parse'?'文档解析':purpose.title}</h3></div><span className="beellix-model-plan-name" title={purpose.connection?.endpoint}>{purpose.operation==='parse'?purpose.enabled===false?'本地':ready?'MinerU':'未配置':name}</span>
    <div className="beellix-model-plan-actions"><button className="beellix-model-plan-configure" type="button" aria-label={'配置 '+title(row)} disabled={busy||!row.enabled||!onConfigure||!purpose.configurationPanel} onClick={()=>onConfigure(row.purpose.configurationPanel,{capabilityId:row.id.split('/').at(-1),title:row.title,view:'model:'+row.purpose.id})}>配置</button><Switch label={'启用 '+title(row)} checked={!!active(row)} disabled={busy||!!toggleReason} title={toggleReason} onChange={enabled=>onSave({pluginId:row.id,purposeId:purpose.id,enabled,expectedRevision:row.revision})}/></div>
   </section>
  }
  return <section className="beellix-model-plan" aria-label={group.title+'设置'}>
-  <div className="beellix-model-plan-main">{main.map(render)}</div>
-  {!!extra.length&&<details className="beellix-model-plan-extra"><summary>{extra.every((row:any)=>row.purpose.operation==='rerank')?'检索重排':extra.every((row:any)=>row.purpose.operation==='parse')?'文档解析':'扩展能力'}<span>{extra.every(row=>row.purpose.operation==='parse')?extra.some(row=>active(row))?'MinerU':'本地':extra.some(row=>active(row))?'已启用':'未启用'}</span></summary>{extra.map(render)}</details>}
+  <div className="beellix-model-plan-main">{group.purposeIds.map((id:string)=>items.find((row:any)=>row.purpose.id===id)).filter(Boolean).map(render)}</div>
  </section>
 }
 
