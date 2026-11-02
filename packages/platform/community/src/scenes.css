@@ -54,11 +54,11 @@ span:has(> [data-slot="conversation.hero.brand.mark"] .beellix-scene-brand){min-
 .beellix-scene-brand-context{display:block;min-width:0;font-size:17px;line-height:1.5;font-weight:500;color:var(--dsw-alias-label-secondary,GrayText);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .beellix-scene-brand-version{flex:none;padding:2px 6px;border:1px solid var(--dsw-alias-border-l2,GrayText);border-radius:5px;font-size:11px;line-height:1.5;font-weight:500;font-variant-numeric:tabular-nums;color:var(--dsw-alias-label-secondary,GrayText);white-space:nowrap}
 /* 模式沿宿主语义色；场景身份不提供会被宿主拒绝的模式切换。 */
-.beellix-mode-control{display:inline-flex;align-items:center;gap:8px}
-.beellix-mode-seat{display:inline-flex;align-items:center;gap:7px;padding:6px 9px;border:0;border-radius:10px;background:transparent;color:var(--dsw-alias-label-primary,CanvasText);font:inherit;cursor:pointer}
-.beellix-mode-seat:hover{background:var(--dsw-alias-interactive-bg-hover,rgba(128,128,128,.1))}
-.beellix-mode-seat:not([aria-haspopup]){cursor:default}
-.beellix-mode-control--header .beellix-mode-seat{gap:4px;height:22px;padding:0 2px 0 0;border-radius:var(--dsw-radius-xs,4px);background:var(--dsw-alias-fill-tsp-secondary,transparent);color:var(--dsw-alias-label-tertiary,GrayText);font-size:12px;line-height:22px;max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.beellix-mode-control{display:inline-flex;align-items:center;min-width:0;max-width:100%}
+.beellix-mode-seat{display:inline-flex;align-items:center;gap:4px;min-width:0;max-width:min(100%,240px);min-height:28px;padding:0 8px;border:0;border-radius:var(--dsw-radius-sm,8px);background:transparent;color:var(--dsw-alias-label-primary,CanvasText);font:inherit;font-size:13px;line-height:20px;font-weight:500;white-space:nowrap;cursor:default}
+.beellix-mode-seat svg{flex:none}
+.beellix-mode-label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.beellix-mode-control--header .beellix-mode-seat{min-height:0;height:22px;padding:0 2px 0 0;border-radius:var(--dsw-radius-xs,4px);background:var(--dsw-alias-fill-tsp-secondary,transparent);color:var(--dsw-alias-label-tertiary,GrayText);font-size:12px;line-height:22px;font-weight:inherit;max-width:180px;overflow:hidden;text-overflow:ellipsis}
 .beellix-mode-control--header .beellix-mode-seat svg{flex:none;opacity:.7}
 @container(max-width:540px){.beellix-mode-control--header{display:none}}
 .beellix-mode-item{display:flex;flex-direction:column;gap:3px;padding:3px 0}.beellix-mode-item strong{font-weight:500}.beellix-mode-item small{opacity:.65;font-size:12px}

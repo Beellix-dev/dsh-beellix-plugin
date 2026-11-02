@@ -49,5 +49,7 @@
   "website-discovery.test.mjs",
   "website-discovery-api.test.mjs",
   "website-discovery-browser.test.mjs",
-  "scene-onboarding.test.mjs"
+  "scene-onboarding.test.mjs",
+  "mode-seat-browser.test.mjs",
+  "mode-header-browser.test.mjs"
 ]
