@@ -7,6 +7,15 @@ import {mkdtemp,readFile,writeFile,mkdir} from 'node:fs/promises'
 import {tmpdir} from 'node:os'
 import {join} from 'node:path'
 
+test('模型方案分组保留全部能力，拒绝缺失、重复或未声明用途',async()=>{
+ const {PluginModels}=await import(moduleUrl('plugin-models.mjs'));let groups=[{id:'ingestion',title:'入库处理',description:'资料整理',purposeIds:['organize']},{id:'retrieval',title:'检索与重排',description:'检索配置',purposeIds:['embedding']}]
+ const service=new PluginModels('',{catalog:async()=>[{id:'knowledge',enabled:true}],models:async()=>({groups:[]}),configuration:()=>({read:async()=>({revision:0,configurationGroups:groups,purposes:[{id:'organize',title:'整理',operation:'chat',selection:null},{id:'embedding',title:'检索',operation:'embedding',selection:null}]}),write:async()=>{}})})
+ assert.deepEqual((await service.snapshot()).plugins[0].configurationGroups,groups)
+ groups=[groups[0]];await assert.rejects(service.snapshot(),/MODEL_STATE_INVALID/)
+ groups=[{...groups[0],purposeIds:['organize','organize','embedding']}];await assert.rejects(service.snapshot(),/MODEL_STATE_INVALID/)
+ groups=[{...groups[0],purposeIds:['missing','embedding']}];await assert.rejects(service.snapshot(),/MODEL_STATE_INVALID/)
+})
+
 test('只列插件声明的模型用途，保留旧配置，不提供通用视觉路由',async()=>{
  const {PluginModels}=await import(moduleUrl('plugin-models.mjs'))
  const root=await mkdtemp(join(tmpdir(),'beellix-plugin-models-'));await mkdir(join(root,'config'))

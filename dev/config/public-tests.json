@@ -58,5 +58,7 @@
   "scene-sidebar.test.mjs",
   "self-update.test.mjs",
   "self-update-api.test.mjs",
-  "self-update-browser.test.mjs"
+  "self-update-browser.test.mjs",
+  "data-tool-contract.test.mjs",
+  "plugin-model-cards.test.mjs"
 ]

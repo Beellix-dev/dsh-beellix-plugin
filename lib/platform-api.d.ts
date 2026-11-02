@@ -19,7 +19,7 @@ export interface BeellixPlatform {
  register(input:{packageName:string;packageDirectory:string;modelConfiguration?:PluginModelConfiguration}):Promise<Readonly<CapabilityConnection>>
 }
 export interface PluginModelConfiguration {
- read():Promise<{revision:number;purposes:Array<{id:string;title:string;kind?:'vision'|'document'|'audio'|'retrieval'|'other';operation?:'chat'|'embedding'|'rerank'|'parse';configurationPanel?:string;configured?:boolean;enabled?:boolean;canToggle?:boolean;connection?:{kind:'local'|'api';model:string;endpoint?:string};inputModalities?:Array<'text'|'image'|'audio'|'video'>;selection:{provider:string;model:string}|null}>}>
+ read():Promise<{revision:number;configurationGroups?:Array<{id:string;title:string;description:string;purposeIds:string[]}>;purposes:Array<{id:string;title:string;kind?:'vision'|'document'|'audio'|'retrieval'|'other';operation?:'chat'|'embedding'|'rerank'|'parse';configurationPanel?:string;configured?:boolean;enabled?:boolean;canToggle?:boolean;connection?:{kind:'local'|'api';model:string;endpoint?:string};inputModalities?:Array<'text'|'image'|'audio'|'video'>;selection:{provider:string;model:string}|null}>}>
  write(input:{purposeId:string;expectedRevision:number}&({selection:{provider:string;model:string}|null;enabled?:never}|{enabled:boolean;selection?:never})):Promise<{application:'applied'|'restart-required'}>
 }
 export declare const PLATFORM_API_VERSION:1

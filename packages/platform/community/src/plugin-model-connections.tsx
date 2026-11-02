@@ -15,6 +15,17 @@ const active=(row:any)=>row.enabled&&configured(row)&&row.purpose.enabled!==fals
 const status=(row:any)=>!row.enabled?'插件已停用':!configured(row)?'未配置':row.purpose.enabled===false?'已停用':'已启用'
 const localQwen=new Set(['qwen3-embedding:0.6b','qwen3-embedding:4b'])
 
+export function PluginModelGroups({plugin,groups,busy,onConfigure}:any){
+ const rows=plugin.purposes.map((purpose:any)=>({...plugin,purpose}))
+ return <div className={css.catalog} data-model-page="plugin-workflows"><div className={css.grid}>{groups.map((group:any)=>{
+  const members=group.purposeIds.map((id:string)=>rows.find((row:any)=>row.purpose.id===id)),primary=members[0],ready=!!primary&&configured(primary)
+  const descriptions=members.map((row:any)=>chat(row)?row.purpose.selection?.model??(inheritsMain(row)?'沿用主模型':'未选择整理模型'):row.purpose.operation==='parse'&&row.purpose.enabled===false?'本地文档解析':row.purpose.connection?.model??(row.purpose.operation==='rerank'?'未启用重排':'尚未配置'))
+  return <CatalogVendorCard key={group.id} label={group.title} title={group.title} identity={<span className={css.mark}><ConsoleIcon kind="resources"/></span>}
+   actions={<button type="button" aria-label={'配置 '+group.title} disabled={busy||!plugin.enabled} onClick={()=>onConfigure(group.id)}>配置</button>}
+   summary={<span>{descriptions.join(' · ')}</span>} status={<span className={css.status} data-active={!!plugin.enabled&&ready}><i aria-hidden="true"/>{!plugin.enabled?'插件已停用':ready?'已配置':'待配置'}</span>} version={plugin.version} details={<span>{group.description}</span>}/>
+ })}</div></div>
+}
+
 export function PluginModelConnections({items,groups=[],busy,onSave,onConfigure,onCatalog}:any){
  const [query,setQuery]=useState(''),[filter,setFilter]=useState('all'),[detail,setDetail]=useState('')
  const needle=query.trim().toLocaleLowerCase()
