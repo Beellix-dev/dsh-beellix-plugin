@@ -5,6 +5,7 @@ import {Mark} from "../../../../dev/shared/console/packages/ui/admin/src/models/
 import css from "../../../../dev/shared/console/packages/ui/admin/src/models/client/VendorCatalog.module.css"
 import navigation from "../../../../dev/shared/console/packages/ui/admin/src/client/NavigationLink.module.css"
 import {ConsoleIcon} from './console-icons.mjs'
+import {vendorIdentity} from './model-catalog.tsx'
 
 const key=(row:any)=>row.id+':'+row.purpose.id
 const title=(row:any)=>row.title+' · '+row.purpose.title
@@ -25,11 +26,11 @@ function IngestionModelForm({row,groups,defaultSelection,busy,onSave,onMainModel
  const draft=enhanced?{provider,model}:null,dirty=JSON.stringify(draft)!==stored,disabled=busy||saving||!row.enabled
  const save=async(event:any)=>{event.preventDefault();if(disabled||!dirty||enhanced&&!selected)return;setSaving(true);try{await onSave({pluginId:row.id,purposeId:row.purpose.id,selection:draft,expectedRevision:row.revision})}finally{setSaving(false)}}
  return <form className="beellix-ingestion-model" aria-label="入库模型" onSubmit={event=>void save(event)}>
-  <div className="beellix-model-default"><div className="beellix-model-field-title">默认模型</div><div className="beellix-model-default-value">{defaultModel?<><strong>{defaultModel.name??defaultModel.id}</strong><span>{defaultGroup.name??defaultGroup.id} · 跟随 DSH 主模型配置</span></>:<><strong>尚无可用的默认模型</strong><span>请先在主模型配置中连接服务并启用模型。</span></>}{onMainModels&&<button type="button" className="beellix-model-text-action" disabled={disabled} onClick={onMainModels}>管理主模型</button>}</div></div>
-  <div className="beellix-model-enhancement"><div className="beellix-model-enhancement-heading"><div><h3>增强模型<span>可选</span></h3><p>为入库整理单独选用模型；关闭后使用默认模型。</p></div><Switch label="启用增强模型" checked={enhanced} disabled={disabled} onChange={setEnhanced}/></div>
+  <div className="beellix-model-default"><span className="beellix-model-field-title">默认模型</span><div className="beellix-model-default-value">{defaultModel?<><Mark id={vendorIdentity(defaultSelection.provider).id}/><div><strong title={(defaultGroup.name??defaultGroup.id)+' · 跟随主模型'}>{defaultModel.name??defaultModel.id}</strong></div></>:<div><strong>尚未配置</strong><span>先连接主模型服务</span></div>}</div>{onMainModels&&<button type="button" className="beellix-model-text-action" aria-label="管理主模型" disabled={disabled} onClick={onMainModels}>管理</button>}</div>
+  <div className="beellix-model-enhancement"><div className="beellix-model-enhancement-heading"><h3 title="为入库整理单独选用模型；关闭后使用默认模型。">增强模型</h3><Switch label="启用增强模型" checked={enhanced} disabled={disabled} onChange={setEnhanced}/></div>
    {enhanced&&<div className="beellix-model-form-fields"><label>模型服务<select aria-label="模型服务" disabled={disabled} value={provider} onChange={event=>{setProvider(event.target.value);setModel('')}}><option value="">选择已配置的服务</option>{provider&&!choices.some((group:any)=>group.id===provider)&&<option value={provider} disabled>{provider}（不可用）</option>}{choices.map((group:any)=><option key={group.id} value={group.id}>{group.name??group.id}</option>)}</select></label><label>增强模型<select aria-label="增强模型" disabled={disabled||!current?.models.length} value={model} onChange={event=>setModel(event.target.value)}><option value="">选择模型</option>{model&&!selected&&<option value={model} disabled>{model}（不可用）</option>}{(current?.models??[]).map((item:any)=><option key={item.id} value={item.id}>{item.name??item.id}</option>)}</select></label>{!choices.length&&<p className="beellix-model-field-help">没有可选的已配置模型，请先在主模型配置中添加。</p>}{model&&!selected&&<p className="beellix-model-field-help" role="alert">原模型已不可用。请选择其他模型，或关闭增强以使用默认模型。</p>}</div>}
   </div>
-  {dirty&&<footer className="beellix-model-form-footer"><span>有未保存的更改</span><button type="button" disabled={disabled} onClick={reset}>取消更改</button><button type="submit" className="beellix-model-form-save" disabled={disabled||enhanced&&!selected}>{saving?'保存中…':'保存更改'}</button></footer>}
+  {dirty&&<footer className="beellix-model-form-footer"><button type="button" aria-label="取消更改" disabled={disabled} onClick={reset}>取消</button><button type="submit" aria-label="保存更改" className="beellix-model-form-save" disabled={disabled||enhanced&&!selected}>{saving?'保存中…':'保存'}</button></footer>}
  </form>
 }
 
@@ -42,13 +43,13 @@ export function PluginModelPlan({group,items,groups=[],defaultSelection,busy,onS
   const name=purpose.operation==='parse'?'MinerU':purpose.connection?.model??'尚未配置'
   const description=purpose.operation==='embedding'?'资料索引与查询共用此向量模型。':purpose.operation==='rerank'?'对召回结果进一步排序，未启用时使用原检索排序。':'启用后，适用的 PDF、Word、PPT 和图片上传至 MinerU 解析。'
   return <section className="beellix-model-plan-row" key={key(row)} aria-label={purpose.title}>
-   <div className="beellix-model-plan-copy"><h3>{purpose.operation==='parse'?'文档解析':purpose.title}</h3><p>{description}</p><div className="beellix-model-plan-connection"><span className="beellix-model-plan-name">{name}</span><span>{purpose.operation==='parse'&&purpose.enabled===false?'当前使用本地解析':status(row)}</span></div></div>
-   <div className="beellix-model-plan-actions"><button className="beellix-model-plan-configure" type="button" aria-label={'配置 '+title(row)} disabled={busy||!row.enabled||!onConfigure||!purpose.configurationPanel} onClick={()=>onConfigure(row.purpose.configurationPanel,{capabilityId:row.id.split('/').at(-1),title:row.title,view:'model:'+row.purpose.id})}>{ready?'更改配置':'配置'}</button><Switch label={'启用 '+title(row)} checked={!!active(row)} disabled={busy||!!toggleReason} title={toggleReason} onChange={enabled=>onSave({pluginId:row.id,purposeId:purpose.id,enabled,expectedRevision:row.revision})}/></div>
+   <div className="beellix-model-plan-copy"><h3 title={description}>{purpose.operation==='parse'?'MinerU':purpose.title}</h3>{purpose.operation==='parse'&&<p>{description}</p>}</div><span className="beellix-model-plan-name" title={purpose.connection?.endpoint}>{purpose.operation==='parse'?purpose.enabled===false?'当前使用本地解析':status(row):name}</span>
+   <div className="beellix-model-plan-actions"><button className="beellix-model-plan-configure" type="button" aria-label={'配置 '+title(row)} disabled={busy||!row.enabled||!onConfigure||!purpose.configurationPanel} onClick={()=>onConfigure(row.purpose.configurationPanel,{capabilityId:row.id.split('/').at(-1),title:row.title,view:'model:'+row.purpose.id})}>配置</button><Switch label={'启用 '+title(row)} checked={!!active(row)} disabled={busy||!!toggleReason} title={toggleReason} onChange={enabled=>onSave({pluginId:row.id,purposeId:purpose.id,enabled,expectedRevision:row.revision})}/></div>
   </section>
  }
  return <section className="beellix-model-plan" aria-label={group.title+'设置'}>
   <div className="beellix-model-plan-main">{main.map(render)}</div>
-  {!!extra.length&&<details className="beellix-model-plan-extra"><summary>{extra.every((row:any)=>row.purpose.operation==='rerank')?'检索重排':extra.every((row:any)=>row.purpose.operation==='parse')?'文档解析服务':'扩展能力'}<span>{extra.some(row=>active(row))?'已启用':'可选'}</span></summary>{extra.map(render)}</details>}
+  {!!extra.length&&<details className="beellix-model-plan-extra"><summary>{extra.every((row:any)=>row.purpose.operation==='rerank')?'检索重排':extra.every((row:any)=>row.purpose.operation==='parse')?'文档解析':'扩展能力'}<span>{extra.every(row=>row.purpose.operation==='parse')?extra.some(row=>active(row))?'MinerU':'本地':extra.some(row=>active(row))?'已启用':'未启用'}</span></summary>{extra.map(render)}</details>}
  </section>
 }
 
