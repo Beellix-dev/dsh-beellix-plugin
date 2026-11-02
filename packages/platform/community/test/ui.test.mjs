@@ -52,7 +52,7 @@ test('打包产物通过原生模块工厂注册主面板，不重复添加侧�
     window: { __ModuleLoader__: { load(value) { entry = value } } },
     document: { defaultView: { MutationObserver: class { observe() {} disconnect() {} }, cancelAnimationFrame() {} }, body: {}, querySelector: () => null, createElement: () => ({ dataset: {}, remove() { styles.pop() } }), head: { append(value) { styles.push(value) } } },
   }
-  sandbox.localStorage={getItem:()=>null,setItem(){},removeItem(){}};sandbox.window.addEventListener=()=>{};sandbox.window.removeEventListener=()=>{};
+  sandbox.Event=Event;sandbox.window.dispatchEvent=()=>true;sandbox.localStorage={getItem:()=>null,setItem(){},removeItem(){}};sandbox.window.addEventListener=()=>{};sandbox.window.removeEventListener=()=>{};
   vm.runInNewContext(readFileSync(resolve(import.meta.dirname, '../lib/client.js'), 'utf8'), sandbox)
   assert.equal(entry.id, '@beellix-ai/dsh-beellix-plugin')
   const plugin = entry.factory(name => { assert.ok(['react','react-dom','react/jsx-runtime','@deepseek-ai/dsh-client-ui-primitives'].includes(name)); return name==='react'?React:name==='react/jsx-runtime'?ReactJSX:ReactDom })
@@ -83,7 +83,7 @@ test('客户端自动接回通过授权 POST，两个入口共享一次准备流
     const path=new URL(url).pathname;calls.push({path,options})
     return{ok:true,headers:{get:()=> 'application/json'},json:async()=>path.endsWith('/reconnect')?{reconnection:{items:[{application:'applied'}]}}:{status:'ready',csrfToken:'fixture-token',applications:{status:'pending'}}}
   }}
-  sandbox.localStorage={getItem:()=>null,setItem(){},removeItem(){}};sandbox.window.addEventListener=()=>{};sandbox.window.removeEventListener=()=>{};
+  sandbox.Event=Event;sandbox.window.dispatchEvent=()=>true;sandbox.localStorage={getItem:()=>null,setItem(){},removeItem(){}};sandbox.window.addEventListener=()=>{};sandbox.window.removeEventListener=()=>{};
   vm.runInNewContext(readFileSync(resolve(import.meta.dirname,'../lib/client.js'),'utf8'),sandbox)
   entry.factory(name=>name==='react'?React:name==='react/jsx-runtime'?ReactJSX:ReactDom).apply({sidebarRight:{mounted:{getSnapshot:()=>undefined,subscribe:()=>()=>{}}},locale:{register:()=>()=>{},bind:()=>t},effect:fn=>fn(),slots:{inject:(_name,fn)=>fn(),register:options=>{entries.push(options);return()=>{}}}})
   const prepare=entries.find(item=>item.name==='shell.overlay').inject().prepare
@@ -95,7 +95,7 @@ test('客户端自动接回通过授权 POST，两个入口共享一次准备流
 test('Next 目录选择复用客户端桥，取消不提交，选中后仅提交待核验的目录',async()=>{
   let entry,chosen=null;const entries=[],calls=[]
   const sandbox={URL,__DSH_DIRECTORY_PICKER__:{pick:async()=>chosen},window:{__ModuleLoader__:{load:value=>entry=value}},document:{baseURI:'http://bootstrap.test/',defaultView:{MutationObserver:class{observe(){}disconnect(){}},cancelAnimationFrame(){}},body:{},querySelector:()=>null,createElement:()=>({dataset:{},remove(){}}),head:{append(){}}},fetch:async(url,options={})=>{calls.push({url:String(url),options});return{ok:true,headers:{get:()=> 'application/json'},json:async()=>({status:'ready',csrfToken:'fixture-token'})}}}
-  sandbox.localStorage={getItem:()=>null,setItem(){},removeItem(){}};sandbox.window.addEventListener=()=>{};sandbox.window.removeEventListener=()=>{};
+  sandbox.Event=Event;sandbox.window.dispatchEvent=()=>true;sandbox.localStorage={getItem:()=>null,setItem(){},removeItem(){}};sandbox.window.addEventListener=()=>{};sandbox.window.removeEventListener=()=>{};
   vm.runInNewContext(readFileSync(resolve(import.meta.dirname,'../lib/client.js'),'utf8'),sandbox)
   entry.factory(name=>name==='react'?React:name==='react/jsx-runtime'?ReactJSX:ReactDom).apply({uiWorkspace:{pickDirectory:()=>{throw Error('不应绕过已有 Next 桥')}},locale:{register:()=>()=>{},bind:()=>t},effect:fn=>fn(),slots:{inject:(_name,fn)=>fn(),register:options=>{entries.push(options);return()=>{}}}})
   const choose=entries.find(item=>item.key==='beellix-platform').inject().chooseDirectory
@@ -107,7 +107,7 @@ test('Next 目录选择复用客户端桥，取消不提交，选中后仅提交
 test('中台侧栏以原生较低优先级覆盖默认项，离开后释放登记',()=>{
   let entry,disposed=0;const entries=[]
   const sandbox={window:{__ModuleLoader__:{load:value=>entry=value}},document:{defaultView:{MutationObserver:class{observe(){}disconnect(){}},cancelAnimationFrame(){}},body:{},querySelector:()=>null,createElement:()=>({dataset:{},remove(){}}),head:{append(){}}}}
-  sandbox.localStorage={getItem:()=>null,setItem(){},removeItem(){}};sandbox.window.addEventListener=()=>{};sandbox.window.removeEventListener=()=>{};
+  sandbox.Event=Event;sandbox.window.dispatchEvent=()=>true;sandbox.localStorage={getItem:()=>null,setItem(){},removeItem(){}};sandbox.window.addEventListener=()=>{};sandbox.window.removeEventListener=()=>{};
   vm.runInNewContext(readFileSync(resolve(import.meta.dirname,'../lib/client.js'),'utf8'),sandbox)
   entry.factory(name=>name==='react'?React:name==='react/jsx-runtime'?ReactJSX:ReactDom).apply({sidebarRight:{mounted:{getSnapshot:()=>undefined,subscribe:()=>()=>{}}},locale:{register:()=>()=>{},bind:()=>t},effect:fn=>fn(),slots:{inject:(_name,fn)=>fn(),register:options=>{entries.push(options);return()=>{disposed++}}},layout:{selectPanel(){},toggleSidebar(){}}})
   const release=entries.find(row=>row.key==='beellix-platform').inject().mountNavigation({})

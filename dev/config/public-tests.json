@@ -51,5 +51,6 @@
   "website-discovery-browser.test.mjs",
   "scene-onboarding.test.mjs",
   "mode-seat-browser.test.mjs",
-  "mode-header-browser.test.mjs"
+  "mode-header-browser.test.mjs",
+  "knowledge-switch.test.mjs"
 ]

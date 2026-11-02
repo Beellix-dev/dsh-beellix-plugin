@@ -37,6 +37,15 @@ test('提供方卸载立即撤销有效范围，保留偏好并通知作用域',
  const {store,connection}=await fixture();let changes=0;const off=store.subscribe(()=>changes++)
  await store.select({sessionId:'a',enabled:true,spaceIds:['one'],expectedRevision:0});const lease=await store.scope('a')
  await connection.dispose();assert.equal(lease.signal.aborted,true)
- const state=await store.read('a');assert.equal(state.enabled,false);assert.equal(state.desiredEnabled,true);assert.equal(state.status,'not-installed');assert.ok(changes>=2)
+ const state=await store.read('a');assert.equal(state.enabled,false);assert.equal(state.desiredEnabled,true);assert.equal(state.status,'unavailable');assert.equal(state.installed,true);assert.ok(changes>=2)
  off();lease.dispose();await store.dispose()
+})
+
+test('安装归属与提供方就绪分别报告，停用不冒充未安装，卸载后明确报告未安装',async()=>{
+ const {store,connection}=await fixture()
+ assert.equal((await store.read('a')).installed,true)
+ await connection.dispose();assert.equal((await store.read('a')).installed,true);assert.equal((await store.read('a')).status,'unavailable')
+ store.owned=async()=>[]
+ const removed=await store.read('a');assert.equal(removed.installed,false);assert.equal(removed.status,'not-installed');assert.equal(removed.enabled,false)
+ await store.dispose()
 })
